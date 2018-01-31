@@ -16,7 +16,7 @@
 (def ellipse-wh (/ rect-width 10))
 (def ellipse-x-init (+ rect-x-init (/ rect-width 2)))
 (def ellipse-y-init (- rect-y-init (/ ellipse-wh 2)) )
-(def ellipse-speed 1)
+(def ellipse-speed 4)
 (def ellipse-sign (atom -))
 
 (defn setup []
@@ -30,7 +30,9 @@
 (defn update-state [state]
   (cond
     (= (:ellipse-y state) (/ ellipse-wh 2))
-    (swap! ellipse-sign (fn [_] +)))
+    (swap! ellipse-sign (fn [_] +))
+    (= (:ellipse-y state) (+ (- rect-y-init rect-height) ellipse-wh))
+    (swap! ellipse-sign (fn [_] -)))
   (update state :ellipse-y (fn [y] (@ellipse-sign y ellipse-speed))))
 
 (defn draw-state [state]
