@@ -17,6 +17,7 @@
 (def ellipse-x-init (+ rect-x-init (/ rect-width 2)))
 (def ellipse-y-init (- rect-y-init (/ ellipse-wh 2)) )
 (def ellipse-speed 1)
+(def ellipse-sign (atom -))
 
 (defn setup []
   (q/frame-rate fps)
@@ -27,7 +28,10 @@
    :ellipse-y ellipse-y-init})
 
 (defn update-state [state]
-  (update state :ellipse-y (fn [y] (- y ellipse-speed))))
+  (cond
+    (= (:ellipse-y state) (/ ellipse-wh 2))
+    (swap! ellipse-sign (fn [_] +)))
+  (update state :ellipse-y (fn [y] (@ellipse-sign y ellipse-speed))))
 
 (defn draw-state [state]
   (q/background background-color)
