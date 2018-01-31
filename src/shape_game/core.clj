@@ -12,6 +12,7 @@
 (def rect-x-init (/ (- width rect-width) 2))
 (def rect-y-init (- height rect-height 10))
 (def rect-speed 4)
+(def rect-dir :none)
 
 (def ellipse-wh (/ rect-width 10))
 (def ellipse-x-init (+ rect-x-init (/ rect-width 2)))
@@ -24,6 +25,7 @@
   (q/color-mode :hsb)
   {:rect-x rect-x-init
    :rect-y rect-y-init
+   :rect-dir rect-dir
    :ellipse-x ellipse-x-init
    :ellipse-y ellipse-y-init})
 
