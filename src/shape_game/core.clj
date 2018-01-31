@@ -10,26 +10,27 @@
 (def rect-x-init (/ (- width rect-width) 2))
 
 (defn setup []
-  ; Set frame rate to 30 frames per second.
-  (q/frame-rate 30)
-  ; Set color mode to HSB (HSV) instead of default RGB.
+  (q/frame-rate 60)
   (q/color-mode :hsb)
-  {:rect-x 0})
+  {:rect-x rect-x-init})
 
 (defn update-state [state]
   state)
 
 (defn draw-state [state]
   (q/background 240)
-  (q/rect rect-x-init rect-y rect-width rect-height))
+  (q/rect (:rect-x state) rect-y rect-width rect-height))
 
 (q/defsketch shape-game
   :title "Shape game"
   :size [width height]
-  ; setup function called only once, during sketch initialization.
   :setup setup
-  ; update-state is called on each iteration before draw-state.
   :update update-state
   :draw draw-state
   :features [:keep-on-top]
-  :middleware [m/fun-mode])
+  :middleware [m/fun-mode]
+  :key-pressed (fn [{:keys [rect-x] :as state} { :keys [key key-code] }]
+                 (case key
+                   (:right) {:rect-x (+ (:rect-x state) 4)}
+                   (:left) {:rect-x (- (:rect-x state) 4)}
+                   state)))
