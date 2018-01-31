@@ -5,20 +5,24 @@
 (def width 500)
 (def height 500)
 (def rect-width (/ width 4))
-(def rect-height (/ height 10))
+(def rect-height (/ height 20))
 (def rect-y (- height rect-height 10))
 (def rect-x-init (/ (- width rect-width) 2))
+(def ellipse-x-init (+ rect-x-init (/ rect-width 2)))
+(def ellipse-wh (/ rect-width 10))
 
 (defn setup []
   (q/frame-rate 60)
   (q/color-mode :hsb)
-  {:rect-x rect-x-init})
+  {:rect-x rect-x-init
+   :ellipse-x ellipse-x-init})
 
 (defn update-state [state]
   state)
 
 (defn draw-state [state]
   (q/background 240)
+  (q/ellipse (:ellipse-x state) 60 ellipse-wh ellipse-wh)
   (q/rect (:rect-x state) rect-y rect-width rect-height))
 
 (q/defsketch shape-game
