@@ -35,6 +35,11 @@
    :ellipse-sign-y -
    :ellipse-y ellipse-y-init})
 
+(defn is-ellipse-hit-rect? [state]
+  (< (:rect-x state)
+     (:ellipse-x state)
+     (+ (:rect-x state) rect-width)))
+
 (defn update-state [state]
   (->
    (cond
@@ -43,7 +48,8 @@
       (->
        (update state :rect-x-speed (fn [_] 2))
        (update :ellipse-sign-y (fn [_] +))))
-    (= (:ellipse-y state) (+ (- rect-y-init rect-height) ellipse-wh))
+    (and (is-ellipse-hit-rect? state)
+         (= (:ellipse-y state) (+ (- rect-y-init rect-height) ellipse-wh))) 
     (do
       (->
        (update state :ellipse-x-speed (fn [_] (:rect-x-speed state)))
@@ -53,7 +59,7 @@
     (->
      (update state :ellipse-sign-x (fn [_] -))
      (update :ellipse-x (fn [x] ((:ellipse-sign-x state) x (:ellipse-x-speed state)))))
-    (= (:ellipse-x state) ellipse-wh)
+    (= (:ellipse-x state) ellipse-wh) 
     (->
      (update state :ellipse-sign-x (fn [_] +))
      (update :ellipse-x (fn [x] ((:ellipse-sign-x state) x (:ellipse-x-speed state)))))
