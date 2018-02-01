@@ -75,8 +75,10 @@
 
 (defn draw-state [state]
   (q/background background-color)
-  (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh)
-  (q/rect (:rect-x state) (:rect-y state) rect-width rect-height))
+  (q/fill 131 131 131)
+  (q/rect (:rect-x state) (:rect-y state) rect-width rect-height)
+  (q/fill 0)
+  (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh))
 
 (q/defsketch shape-game
   :title "Shape game"
