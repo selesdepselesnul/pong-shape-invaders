@@ -22,9 +22,7 @@
 (def ellipse-x-speed-init 0)
 (def ellipse-sign-y (atom -))
 
-(defn setup []
-  (q/frame-rate fps)
-  (q/color-mode :hsb)
+(def init-state
   {:rect-x rect-x-init
    :rect-x-speed rect-x-speed-init
    :rect-y rect-y-init
@@ -34,6 +32,11 @@
    :ellipse-sign-x +
    :ellipse-sign-y -
    :ellipse-y ellipse-y-init})
+
+(defn setup []
+  (q/frame-rate fps)
+  (q/color-mode :hsb)
+  init-state)
 
 (defn is-ellipse-hit-rect? [state]
   (< (:rect-x state)
@@ -49,29 +52,33 @@
              (:ellipse-x-speed state)))))
 
 (defn update-state [state]
-  (->
-   (cond
-    (= (:ellipse-y state) (/ ellipse-wh 2))
+  (if (> (:ellipse-y state) width)
+    (do
+      (q/background 0)
+      init-state) 
     (->
-     (update state :rect-x-speed (fn [_] 2))
-     (update :ellipse-sign-y (fn [_] +)))
-    (and (is-ellipse-hit-rect? state)
-         (= (:ellipse-y state) (+ (- rect-y-init rect-height) ellipse-wh))) 
-    (->
-     (update state :ellipse-x-speed (fn [_] (:rect-x-speed state)))
-     (update :ellipse-sign-y (fn [_] -))
-     (update :ellipse-sign-x (fn [y] (if (= :left (:rect-dir state)) + -))))
-    (= (:ellipse-x state) (- width ellipse-wh))
-    (->
-     (update state :ellipse-sign-x (fn [_] -))
-     move-ellipse-x-diagonal)
-    (= (:ellipse-x state) ellipse-wh) 
-    (->
-     (update state :ellipse-sign-x (fn [_] +))
-     move-ellipse-x-diagonal)
-    :else
-    (move-ellipse-x-diagonal state))
-   (update :ellipse-y (fn [y] ((:ellipse-sign-y state) y ellipse-y-step)))))
+     (cond
+       (= (:ellipse-y state) (/ ellipse-wh 2))
+       (->
+        (update state :rect-x-speed (fn [_] 2))
+        (update :ellipse-sign-y (fn [_] +)))
+       (and (is-ellipse-hit-rect? state)
+            (= (:ellipse-y state) (+ (- rect-y-init rect-height) ellipse-wh))) 
+       (->
+        (update state :ellipse-x-speed (fn [_] (:rect-x-speed state)))
+        (update :ellipse-sign-y (fn [_] -))
+        (update :ellipse-sign-x (fn [y] (if (= :left (:rect-dir state)) + -))))
+       (= (:ellipse-x state) (- width ellipse-wh))
+       (->
+        (update state :ellipse-sign-x (fn [_] -))
+        move-ellipse-x-diagonal)
+       (= (:ellipse-x state) ellipse-wh) 
+       (->
+        (update state :ellipse-sign-x (fn [_] +))
+        move-ellipse-x-diagonal)
+       :else
+       (move-ellipse-x-diagonal state))
+     (update :ellipse-y (fn [y] ((:ellipse-sign-y state) y ellipse-y-step))))))
 
 (defn draw-state [state]
   (q/background background-color)
