@@ -40,6 +40,14 @@
      (:ellipse-x state)
      (+ (:rect-x state) rect-width)))
 
+(defn move-ellipse-x-diagonal [state]
+  (update state
+          :ellipse-x
+          (fn [x]
+            ((:ellipse-sign-x state)
+             x
+             (:ellipse-x-speed state)))))
+
 (defn update-state [state]
   (->
    (cond
@@ -56,13 +64,13 @@
     (= (:ellipse-x state) (- width ellipse-wh))
     (->
      (update state :ellipse-sign-x (fn [_] -))
-     (update :ellipse-x (fn [x] ((:ellipse-sign-x state) x (:ellipse-x-speed state)))))
+     move-ellipse-x-diagonal)
     (= (:ellipse-x state) ellipse-wh) 
     (->
      (update state :ellipse-sign-x (fn [_] +))
-     (update :ellipse-x (fn [x] ((:ellipse-sign-x state) x (:ellipse-x-speed state)))))
+     move-ellipse-x-diagonal)
     :else
-    (update state :ellipse-x (fn [x] ((:ellipse-sign-x state) x (:ellipse-x-speed state)))))
+    (move-ellipse-x-diagonal state))
    (update :ellipse-y (fn [y] ((:ellipse-sign-y state) y ellipse-y-step)))))
 
 (defn draw-state [state]
