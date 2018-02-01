@@ -53,6 +53,10 @@
     (->
      (update state :ellipse-sign-x (fn [_] -))
      (update :ellipse-x (fn [x] ((:ellipse-sign-x state) x (:ellipse-x-speed state)))))
+    (= (:ellipse-x state) ellipse-wh)
+    (->
+     (update state :ellipse-sign-x (fn [_] +))
+     (update :ellipse-x (fn [x] ((:ellipse-sign-x state) x (:ellipse-x-speed state)))))
     :else
     (update state :ellipse-x (fn [x] ((:ellipse-sign-x state) x (:ellipse-x-speed state)))))
    (update :ellipse-y (fn [y] ((:ellipse-sign-y state) y ellipse-y-step)))))
