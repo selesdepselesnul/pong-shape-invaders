@@ -35,7 +35,6 @@
 
 (defn setup []
   (q/frame-rate fps)
-  (q/color-mode :hsb)
   init-state)
 
 (defn is-ellipse-hit-rect? [state]
@@ -53,9 +52,7 @@
 
 (defn update-state [state]
   (if (> (:ellipse-y state) width)
-    (do
-      (q/background 0)
-      init-state) 
+    init-state 
     (->
      (cond
        (= (:ellipse-y state) (/ ellipse-wh 2))
