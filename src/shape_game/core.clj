@@ -116,8 +116,7 @@
      state
      (update :enemies-shape-state (fn [_] enemies-state-alive))
      (update :score
-             (fn [x]
-                (+ x (* (- total-enemies new-total-enemies) 10)))))))
+             #(+ % (* (- total-enemies new-total-enemies) 10))))))
 
 (defn update-state [state]
   (->
