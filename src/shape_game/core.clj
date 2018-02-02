@@ -20,7 +20,7 @@
 (def ellipse-y-init (- rect-y-init (/ ellipse-wh 2)))
 (def ellipse-y-step 10)
 (def ellipse-x-speed-init 0)
-(def ellipse-sign-y (atom -))
+(def ellipse-diagonal-step 1.5)
 
 (def enemy-diameter 40)
 
@@ -65,7 +65,7 @@
        (= (:ellipse-y state) (/ ellipse-wh 2))
        (->
         state
-        (update :rect-x-speed (fn [_] 2))
+        (update :rect-x-speed (fn [_] ellipse-diagonal-step))
         (update :ellipse-sign-y (fn [_] +)))
        (and (is-ellipse-hit-rect? state)
             (= (:ellipse-y state) (+ (- rect-y-init rect-height) ellipse-wh))) 
