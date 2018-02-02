@@ -50,7 +50,7 @@
              x
              (:ellipse-x-speed state)))))
 
-(defn update-state [state]
+(defn update-ellipse [state]
   (if (> (:ellipse-y state) width)
     init-state 
     (->
@@ -76,6 +76,21 @@
        :else
        (move-ellipse-x-diagonal state))
      (update :ellipse-y (fn [y] ((:ellipse-sign-y state) y ellipse-y-step))))))
+
+(defn update-rect [state]
+  (cond
+    (>= (:rect-x state) (- width rect-width))
+    (update state :rect-x (fn [x] (- x rect-x-step)))
+    (<= (:rect-x state) 0)
+    (update state :rect-x (fn [x] (+ x rect-x-step)))
+    :else
+    state))
+
+(defn update-state [state]
+  (->
+   state
+   update-ellipse
+   update-rect))
 
 (defn draw-state [state]
   (q/background background-color)
