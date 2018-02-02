@@ -25,9 +25,7 @@
 (def enemy-diameter 40)
 
 (defn generate-enemies-shape-state[]
-  [{:x 20 :y 10}
-   {:x 80 :y 10}
-   {:x 400 :y 10}])
+  [{:x 400 :y 10}])
 
 (def init-state
   {:rect-x rect-x-init
@@ -39,7 +37,8 @@
    :ellipse-sign-x +
    :ellipse-sign-y -
    :ellipse-y ellipse-y-init
-   :enemies-shape-state (generate-enemies-shape-state)})
+   :enemies-shape-state (generate-enemies-shape-state)
+   :score 0})
 
 (defn setup []
   (q/frame-rate fps)
@@ -99,7 +98,9 @@
     state))
 
 (defn update-enemies-state [state]
-  (let [enemies-state-alive
+  (let [enemies-shape-state (:enemies-shape-state state)
+        total-enemies (count enemies-shape-state)
+        enemies-state-alive
         (remove
           #(and
             (< (:y %)
@@ -109,8 +110,14 @@
              (fn [x] (= x (:ellipse-x state)))
              (range (- (:x %) enemy-diameter)
                    (+ (:x %) enemy-diameter))))
-          (:enemies-shape-state state))]
-    (update state :enemies-shape-state (fn [_] enemies-state-alive))))
+          (:enemies-shape-state state))
+        new-total-enemies (count enemies-state-alive)]
+    (->
+     state
+     (update :enemies-shape-state (fn [_] enemies-state-alive))
+     (update :score
+             (fn [x]
+                (+ x (* (- total-enemies new-total-enemies) 10)))))))
 
 (defn update-state [state]
   (->
@@ -125,6 +132,8 @@
   (q/rect (:rect-x state) (:rect-y state) rect-width rect-height)
   (q/fill 0)
   (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh)
+  (q/text-size 20)
+  (q/text (str "Score : " (:score state)) 20 20)
   (doseq [p (:enemies-shape-state state)]
     (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
 
