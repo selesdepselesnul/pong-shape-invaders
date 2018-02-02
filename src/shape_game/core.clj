@@ -22,6 +22,13 @@
 (def ellipse-x-speed-init 0)
 (def ellipse-sign-y (atom -))
 
+(def enemy-diameter 40)
+
+(defn generate-enemies-shape-state[]
+  [{:x 20 :y 10}
+   {:x 80 :y 10}
+   {:x 400 :y 10}])
+
 (def init-state
   {:rect-x rect-x-init
    :rect-x-speed rect-x-speed-init
@@ -31,7 +38,8 @@
    :ellipse-x-speed ellipse-x-speed-init
    :ellipse-sign-x +
    :ellipse-sign-y -
-   :ellipse-y ellipse-y-init})
+   :ellipse-y ellipse-y-init
+   :enemies-shape-state (generate-enemies-shape-state)})
 
 (defn setup []
   (q/frame-rate fps)
@@ -90,18 +98,35 @@
     :else
     state))
 
+(defn update-enemies-state [state]
+  (let [enemies-state-alive
+        (remove
+          #(and
+            (< (:y %)
+               (:ellipse-y state)
+               (+ (:y %) enemy-diameter))
+            (some
+             (fn [x] (= x (:ellipse-x state)))
+             (range (- (:x %) enemy-diameter)
+                   (+ (:x %) enemy-diameter))))
+          (:enemies-shape-state state))]
+    (update state :enemies-shape-state (fn [_] enemies-state-alive))))
+
 (defn update-state [state]
   (->
    state
    update-ellipse-state
-   update-rect-state))
+   update-rect-state
+   update-enemies-state))
 
 (defn draw-state [state]
   (q/background background-color)
   (q/fill 131 131 131)
   (q/rect (:rect-x state) (:rect-y state) rect-width rect-height)
   (q/fill 0)
-  (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh))
+  (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh)
+  (doseq [p (:enemies-shape-state state)]
+    (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
 
 (q/defsketch shape-game
   :title "Shape game"
