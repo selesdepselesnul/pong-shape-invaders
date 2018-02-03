@@ -103,6 +103,20 @@
     :else
     state))
 
+(defn is-ellipse-and-enemy-point-collide?
+  [state enemy-state ellipse-point-keyword enemy-point-keyword]
+  (> (count
+      (set/intersection
+       (set
+        (range
+         (- (ellipse-point-keyword state) ellipse-r)
+         (+ 1 (+ (ellipse-point-keyword state) ellipse-r))))
+       (set
+        (range
+         (enemy-point-keyword enemy-state)
+         (+ 1 (+ (enemy-point-keyword enemy-state) enemy-diameter))))))
+     0))
+
 (defn update-enemies-state [state]
   (let [enemies-shape-state (:enemies-shape-state state)
         total-enemies (count enemies-shape-state)
@@ -110,29 +124,9 @@
         (remove
          (fn [enemy-state]
            (and
-            (> (count
-                (set/intersection
-                 (set
-                  (range
-                   (- (:ellipse-y state) ellipse-r)
-                   (+ 1 (+ (:ellipse-y state) ellipse-r))))
-                 (set
-                  (range
-                   (:y enemy-state)
-                   (+ 1 (+ (:y enemy-state) enemy-diameter))))))
-               0)
-            (> (count
-                (set/intersection
-                 (set
-                  (range
-                   (- (:ellipse-x state) ellipse-r)
-                   (+ 1 (+ (:ellipse-x state) ellipse-r)))) 
-                 (set
-                  (range
-                   (:x enemy-state)
-                   (+ 1 (+ (:x enemy-state) enemy-diameter))))))
-               0)))
-          (:enemies-shape-state state))
+            (is-ellipse-and-enemy-point-collide? state enemy-state :ellipse-y :y)
+            (is-ellipse-and-enemy-point-collide? state enemy-state :ellipse-x :x)))
+          enemies-shape-state)
         new-total-enemies (count enemies-state-alive)]
     (->
      state
