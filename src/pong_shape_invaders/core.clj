@@ -138,14 +138,22 @@
                 (let [x (:x enemy-state)
                       dir (:dir enemy-state)
                       y (:y enemy-state)
-                      rand-step (rand-int 4)]
-                  (if (= 0 (:dir enemy-state))
-                    {:x (- x rand-step)
-                     :y y
-                     :dir 1}
-                    {:x (+ x rand-step)
-                     :y y
-                     :dir 0})))))
+                      rand-step (rand-int 4)
+                      new-enemy-state
+                      (if (= 0 (:dir enemy-state))
+                        {:x (- x rand-step)
+                         :y y
+                         :dir 1}
+                        {:x (+ x rand-step)
+                         :y y
+                         :dir 0})]
+                  (cond
+                    (>= (+ (:x new-enemy-state) enemy-diameter) width)
+                    (update new-enemy-state :x (fn [_] (- width enemy-diameter)))
+                    (<= (:x new-enemy-state) 0)
+                    (update new-enemy-state :x (fn [_] 0))
+                    :else
+                    new-enemy-state)))))
         new-total-enemies (count enemies-state-alive)]
     (->
      state
