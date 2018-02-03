@@ -52,7 +52,8 @@
      :ellipse-y ellipse-y-init
      :enemies-shape-state enemies-shape-state
      :score 0
-     :enemies-total (count enemies-shape-state)}))
+     :enemies-total (count enemies-shape-state)
+     :is-paused? false}))
 
 (defn setup []
   (q/frame-rate fps)
@@ -167,11 +168,13 @@
        (update :enemies-total #(- % delta-enemies))))))
 
 (defn update-state [state]
-  (->
-   state
-   update-ellipse-state
-   update-rect-state
-   update-enemies-state))
+  (if (:is-paused? state)
+    state
+    (->
+     state
+     update-ellipse-state
+     update-rect-state
+     update-enemies-state)))
 
 (defn draw-state [state]
   (q/background background-color)
@@ -202,5 +205,7 @@
                    (update state :rect-x (partial + rect-x-step))
                    (:left)
                    (update state :rect-x (fn [x] (- x rect-x-step)))
+                   (:up)
+                   (update state :is-paused? (fn [x] (not x)))
                    state)
                   (update :rect-dir (fn [_] key)))))
