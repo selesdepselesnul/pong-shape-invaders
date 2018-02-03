@@ -5,7 +5,7 @@
 
 (def width 800)
 (def height 600)
-(def background-color 240)
+(def background-color 0)
 (def fps 60)
 
 (def rect-width (/ width 4))
@@ -164,11 +164,12 @@
   (q/background background-color)
   (q/fill 131 131 131)
   (q/rect (:rect-x state) (:rect-y state) rect-width rect-height)
-  (q/fill 0)
+  (q/fill 255)
   (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh)
   (q/text-size 20)
   (q/text (str "Score : " (:score state)) 20 20)
   (doseq [p (:enemies-shape-state state)]
+    (q/fill (rand-int 256) 120 (rand-int 256))
     (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
 
 (q/defsketch shape-game
