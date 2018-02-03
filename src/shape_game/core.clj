@@ -26,12 +26,18 @@
 
 (def enemy-diameter 30)
 
-(defn generate-enemies-shape-state []
+(defn generate-enemies-shape-state-in-y [y]
   (->>
    (range enemy-diameter
           (* 26 enemy-diameter)
           (* 2 enemy-diameter))
-   (map (fn [x] {:x x :y 40 :dir (rand-int 2)}))))
+   (map (fn [x] {:x x :y y :dir (rand-int 2)}))))
+
+(defn generate-enemies-shape-state []
+  (concat
+   (generate-enemies-shape-state-in-y 40)
+   (generate-enemies-shape-state-in-y 120)
+   (generate-enemies-shape-state-in-y 200)))
 
 (def init-state
   {:rect-x rect-x-init
