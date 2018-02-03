@@ -40,17 +40,19 @@
    (generate-enemies-shape-state-in-y 200)))
 
 (def init-state
-  {:rect-x rect-x-init
-   :rect-x-speed rect-x-speed-init
-   :rect-y rect-y-init
-   :rect-dir rect-dir
-   :ellipse-x ellipse-x-init
-   :ellipse-x-speed ellipse-x-speed-init
-   :ellipse-sign-x +
-   :ellipse-sign-y -
-   :ellipse-y ellipse-y-init
-   :enemies-shape-state (generate-enemies-shape-state)
-   :score 0})
+  (let [enemies-shape-state (generate-enemies-shape-state)]
+    {:rect-x rect-x-init
+     :rect-x-speed rect-x-speed-init
+     :rect-y rect-y-init
+     :rect-dir rect-dir
+     :ellipse-x ellipse-x-init
+     :ellipse-x-speed ellipse-x-speed-init
+     :ellipse-sign-x +
+     :ellipse-sign-y -
+     :ellipse-y ellipse-y-init
+     :enemies-shape-state enemies-shape-state
+     :score 0
+     :enemies-total (count enemies-shape-state)}))
 
 (defn setup []
   (q/frame-rate fps)
@@ -154,12 +156,15 @@
                     (update new-enemy-state :x (fn [_] 0))
                     :else
                     new-enemy-state)))))
-        new-total-enemies (count enemies-state-alive)]
-    (->
-     state
-     (update :enemies-shape-state (fn [_] enemies-state-alive))
-     (update :score
-             #(+ % (* (- total-enemies new-total-enemies) 10))))))
+        new-total-enemies (count enemies-state-alive)
+        delta-enemies (- total-enemies new-total-enemies)]    
+    (if (= 0 delta-enemies)
+      (update state :enemies-shape-state (fn [_] enemies-state-alive))
+      (->
+       (update state :enemies-shape-state (fn [_] enemies-state-alive))
+       (update :score
+               #(+ % (* (- total-enemies new-total-enemies) 10)))
+       (update :enemies-total #(- % delta-enemies))))))
 
 (defn update-state [state]
   (->
@@ -177,6 +182,7 @@
   (q/text-size 20)
   (q/fill 255)
   (q/text (str "Score : " (:score state)) 20 20)
+  (q/text (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
   (doseq [p (:enemies-shape-state state)]
     (q/fill (rand-int 256) 120 (rand-int 256))
     (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
