@@ -186,6 +186,9 @@
   (q/fill 255)
   (q/text (str "Score : " (:score state)) 20 20)
   (q/text (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
+  (when (:is-paused? state)
+    (q/text-size 60)
+    (q/text "PAUSED" (/ height 2) (/ width 2)))
   (doseq [p (:enemies-shape-state state)]
     (q/fill (rand-int 256) 120 (rand-int 256))
     (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
