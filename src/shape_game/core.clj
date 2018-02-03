@@ -29,9 +29,9 @@
 (defn generate-enemies-shape-state []
   (->>
    (range enemy-diameter
-          (* 18 enemy-diameter)
+          (* 16 enemy-diameter)
           (* 2 enemy-diameter))
-   (map (fn [x] {:x x :y 40}))))
+   (map (fn [x] {:x x :y 40 :dir (rand-int 2)}))))
 
 (def init-state
   {:rect-x rect-x-init
@@ -121,12 +121,25 @@
   (let [enemies-shape-state (:enemies-shape-state state)
         total-enemies (count enemies-shape-state)
         enemies-state-alive
-        (remove
-         (fn [enemy-state]
-           (and
-            (is-ellipse-and-enemy-point-collide? state enemy-state :ellipse-y :y)
-            (is-ellipse-and-enemy-point-collide? state enemy-state :ellipse-x :x)))
+        (->>
+         (remove
+          (fn [enemy-state]
+            (and
+             (is-ellipse-and-enemy-point-collide? state enemy-state :ellipse-y :y)
+             (is-ellipse-and-enemy-point-collide? state enemy-state :ellipse-x :x)))
           enemies-shape-state)
+         (map (fn [enemy-state]
+                (let [x (:x enemy-state)
+                      dir (:dir enemy-state)
+                      y (:y enemy-state)
+                      rand-step (rand-int 4)]
+                  (if (= 0 (:dir enemy-state))
+                    {:x (- x rand-step)
+                     :y y
+                     :dir 1}
+                    {:x (+ x rand-step)
+                     :y y
+                     :dir 0})))))
         new-total-enemies (count enemies-state-alive)]
     (->
      state
