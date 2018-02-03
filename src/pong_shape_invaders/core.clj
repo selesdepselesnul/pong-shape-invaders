@@ -1,4 +1,4 @@
-(ns shape-invaders.core
+(ns pong-shape-invaders.core
   (:require [quil.core :as q]
             [quil.middleware :as m]
             [clojure.set :as set]))

@@ -1,4 +1,4 @@
-(defproject shape-invaders "0.1.0-SNAPSHOT"
+(defproject pong-shape-invaders "0.1.0-SNAPSHOT"
   :description "It is simple game, Pong + Space invaders but with only basic shapes :)"
   :url "https://github.com/selesdepselesnul/shape-invaders.git"
   :license {:name "Eclipse Public License"
