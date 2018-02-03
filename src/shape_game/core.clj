@@ -164,9 +164,10 @@
   (q/background background-color)
   (q/fill 131 131 131)
   (q/rect (:rect-x state) (:rect-y state) rect-width rect-height)
-  (q/fill 255)
+  (q/fill 0 247 255)
   (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh)
   (q/text-size 20)
+  (q/fill 255)
   (q/text (str "Score : " (:score state)) 20 20)
   (doseq [p (:enemies-shape-state state)]
     (q/fill (rand-int 256) 120 (rand-int 256))
