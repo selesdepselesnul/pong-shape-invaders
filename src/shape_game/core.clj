@@ -24,12 +24,12 @@
 (def ellipse-x-speed-init 0)
 (def ellipse-diagonal-step 2)
 
-(def enemy-diameter 40)
+(def enemy-diameter 30)
 
 (defn generate-enemies-shape-state []
   (->>
    (range enemy-diameter
-          (* 16 enemy-diameter)
+          (* 26 enemy-diameter)
           (* 2 enemy-diameter))
    (map (fn [x] {:x x :y 40 :dir (rand-int 2)}))))
 
