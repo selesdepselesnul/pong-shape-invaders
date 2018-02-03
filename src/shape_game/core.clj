@@ -1,6 +1,7 @@
 (ns shape-game.core
   (:require [quil.core :as q]
-            [quil.middleware :as m]))
+            [quil.middleware :as m]
+            [clojure.set :as set]))
 
 (def width 800)
 (def height 600)
@@ -16,11 +17,12 @@
 (def rect-dir :none)
 
 (def ellipse-wh (/ rect-width 10))
+(def ellipse-r (/ ellipse-wh 2))
 (def ellipse-x-init (+ rect-x-init (/ rect-width 2)))
 (def ellipse-y-init (- rect-y-init (/ ellipse-wh 2)))
 (def ellipse-y-step 10)
 (def ellipse-x-speed-init 0)
-(def ellipse-diagonal-step 1.5)
+(def ellipse-diagonal-step 2)
 
 (def enemy-diameter 40)
 
@@ -106,14 +108,30 @@
         total-enemies (count enemies-shape-state)
         enemies-state-alive
         (remove
-          #(and
-            (< (:y %)
-               (:ellipse-y state)
-               (+ (:y %) enemy-diameter))
-            (some
-             (fn [x] (= x (:ellipse-x state)))
-             (range (- (:x %) enemy-diameter)
-                   (+ (:x %) enemy-diameter))))
+         (fn [enemy-state]
+           (and
+            (> (count
+                (set/intersection
+                 (set
+                  (range
+                   (- (:ellipse-y state) ellipse-r)
+                   (+ 1 (+ (:ellipse-y state) ellipse-r))))
+                 (set
+                  (range
+                   (:y enemy-state)
+                   (+ 1 (+ (:y enemy-state) enemy-diameter))))))
+               0)
+            (> (count
+                (set/intersection
+                 (set
+                  (range
+                   (- (:ellipse-x state) ellipse-r)
+                   (+ 1 (+ (:ellipse-x state) ellipse-r)))) 
+                 (set
+                  (range
+                   (:x enemy-state)
+                   (+ 1 (+ (:x enemy-state) enemy-diameter))))))
+               0)))
           (:enemies-shape-state state))
         new-total-enemies (count enemies-state-alive)]
     (->
