@@ -164,7 +164,7 @@
   (q/background background-color)
   (q/fill 131 131 131)
   (q/rect (:rect-x state) (:rect-y state) rect-width rect-height)
-  (q/fill 0 247 255)
+  (q/fill 0 248 255)
   (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh)
   (q/text-size 20)
   (q/fill 255)

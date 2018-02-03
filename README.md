@@ -1,6 +1,9 @@
-# shape-game
+# shape-invaders
 
-A Quil sketch designed to ... well, that part is up to you.
+Simple game, it's pong + space invaders but with only basic shapes.
+
+
+![alt screenshot](screenshot.png)
 
 ## Usage
 
@@ -12,7 +15,7 @@ REPL - run `(require 'shape-game.core)`.
 
 ## License
 
-Copyright © 2016 FIXME
+Copyright © 2018 Moch Deden
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
