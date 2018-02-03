@@ -1,4 +1,4 @@
-(ns shape-game.core
+(ns shape-invaders.core
   (:require [quil.core :as q]
             [quil.middleware :as m]
             [clojure.set :as set]))
