@@ -193,8 +193,8 @@
     (q/fill (rand-int 256) 120 (rand-int 256))
     (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
 
-(q/defsketch shape-game
-  :title "Shape game"
+(q/defsketch pong-shape-invaders
+  :title "Pong shape invaders"
   :size [width height]
   :setup setup
   :update update-state
