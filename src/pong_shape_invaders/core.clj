@@ -78,12 +78,16 @@
         (update-in [:rect :x-speed] (fn [_] ellipse-diagonal-step))
         (update-in [:ellipse :y-sign] (fn [_] +)))
        (and (is-ellipse-hit-rect? state)
-            (= (get-in state [:ellipse :y]) (+ (- rect-y-init rect-height) ellipse-diameter))) 
+            (= (get-in state [:ellipse :y])
+               (+ (- rect-y-init rect-height) ellipse-diameter))) 
        (->
         state
-        (update-in [:ellipse :x-speed] (fn [_] (get-in state [:rect :x-speed])))
+        (update-in [:ellipse :x-speed]
+                   (fn [_] (get-in state [:rect :x-speed])))
         (update-in [:ellipse :y-sign] (fn [_] -))
-        (update-in [:ellipse :x-sign ] (fn [y] (if (= :left (get-in state [:rect :dir])) + -))))
+        (update-in
+         [:ellipse :x-sign ]
+         (fn [y] (if (= :left (get-in state [:rect :dir])) + -))))
        (>= (get-in state [:ellipse :x]) (- width ellipse-diameter))
        (->
         state
@@ -96,9 +100,10 @@
         move-ellipse-x-diagonal)
        :else
        (move-ellipse-x-diagonal state))
-     (update-in [:ellipse :y]
-                (fn [y]
-                  ((get-in state [:ellipse :y-sign]) y ellipse-y-step))))))
+     (update-in
+      [:ellipse :y]
+      (fn [y]
+        ((get-in state [:ellipse :y-sign]) y ellipse-y-step))))))
 
 (defn update-rect-state [state]
   (cond
@@ -155,7 +160,9 @@
                          :dir 0})]
                   (cond
                     (>= (+ (:x new-enemy-state) enemy-diameter) width)
-                    (update new-enemy-state :x (fn [_] (- width enemy-diameter)))
+                    (update new-enemy-state
+                            :x
+                            (fn [_] (- width enemy-diameter)))
                     (<= (:x new-enemy-state) 0)
                     (update new-enemy-state :x (fn [_] 0))
                     :else
@@ -194,7 +201,8 @@
   (q/text-size 20)
   (q/fill 255)
   (q/text (str "Score : " (:score state)) 20 20)
-  (q/text (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
+  (q/text
+   (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
   (when (:is-paused? state)
     (q/text-size 60)
     (q/text "PAUSED" (/ height 2) (/ width 2)))
@@ -217,9 +225,13 @@
                    (->
                     (case key
                       (:right)
-                      (update-in state [:rect :x] (partial + rect-x-step))
+                      (update-in state
+                                 [:rect :x]
+                                 (partial + rect-x-step))
                       (:left)
-                      (update-in state [:rect :x] (fn [x] (- x rect-x-step)))
+                      (update-in state
+                                 [:rect :x]
+                                 (fn [x] (- x rect-x-step)))
                       (:up)
                       (update state :is-paused? (fn [x] (not x)))
                       state)
