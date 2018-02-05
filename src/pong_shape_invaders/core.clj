@@ -56,7 +56,7 @@
 
 (defn is-ellipse-hit-rect? [state]
   (< (get-in state [:rect :x])
-     (get-in state [:ellipse :x] state)
+     (get-in state [:ellipse :x])
      (+ (get-in state [:rect :x]) rect-width)))
 
 (defn move-ellipse-x-diagonal [state]
@@ -86,7 +86,7 @@
                    (fn [_] (get-in state [:rect :x-speed])))
         (update-in [:ellipse :y-sign] (fn [_] -))
         (update-in
-         [:ellipse :x-sign ]
+         [:ellipse :x-sign]
          (fn [y] (if (= :left (get-in state [:rect :dir])) + -))))
        (>= (get-in state [:ellipse :x]) (- width ellipse-diameter))
        (->
