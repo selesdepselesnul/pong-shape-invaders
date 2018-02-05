@@ -10,18 +10,13 @@
 
 (def rect-width (/ width 4))
 (def rect-height (/ height 20))
+(def rect-x-step 6)
 (def rect-x-init (/ (- width rect-width) 2))
 (def rect-y-init (- height rect-height 10))
-(def rect-x-step 6)
-(def rect-x-speed-init 0)
-(def rect-dir :none)
 
-(def ellipse-wh (/ rect-width 10))
-(def ellipse-r (/ ellipse-wh 2))
-(def ellipse-x-init (+ rect-x-init (/ rect-width 2)))
-(def ellipse-y-init (- rect-y-init (/ ellipse-wh 2)))
+(def ellipse-diameter (/ rect-width 10))
+(def ellipse-radius (/ ellipse-diameter 2))
 (def ellipse-y-step 10)
-(def ellipse-x-speed-init 0)
 (def ellipse-diagonal-step 2)
 
 (def enemy-diameter 30)
@@ -43,11 +38,11 @@
   (let [enemies-shape-state (generate-enemies-shape-state)]
     {:rect {:x rect-x-init
             :y rect-y-init
-            :dir rect-dir
-            :x-speed rect-x-speed-init}
-     :ellipse {:x ellipse-x-init
-               :y ellipse-y-init
-               :x-speed ellipse-x-speed-init
+            :dir :none
+            :x-speed 0}
+     :ellipse {:x (+ rect-x-init (/ rect-width 2))
+               :y (- rect-y-init (/ ellipse-diameter 2))
+               :x-speed 0
                :x-sign +
                :y-sign -}
      :enemies enemies-shape-state
@@ -77,24 +72,24 @@
     init-state 
     (->
      (cond
-       (= (get-in state [:ellipse :y]) (/ ellipse-wh 2))
+       (<= (get-in state [:ellipse :y]) (/ ellipse-diameter 2))
        (->
         state
         (update-in [:rect :x-speed] (fn [_] ellipse-diagonal-step))
         (update-in [:ellipse :y-sign] (fn [_] +)))
        (and (is-ellipse-hit-rect? state)
-            (= (get-in state [:ellipse :y]) (+ (- rect-y-init rect-height) ellipse-wh))) 
+            (= (get-in state [:ellipse :y]) (+ (- rect-y-init rect-height) ellipse-diameter))) 
        (->
         state
         (update-in [:ellipse :x-speed] (fn [_] (get-in state [:rect :x-speed])))
         (update-in [:ellipse :y-sign] (fn [_] -))
         (update-in [:ellipse :x-sign ] (fn [y] (if (= :left (get-in state [:rect :dir])) + -))))
-       (= (:ellipse-x state) (- width ellipse-wh))
+       (>= (get-in state [:ellipse :x]) (- width ellipse-diameter))
        (->
         state
         (update-in [:ellipse :x-sign] (fn [_] -))
         move-ellipse-x-diagonal)
-       (= (get-in state [:ellipse :x]  state) ellipse-wh) 
+       (= (get-in state [:ellipse :x] state) ellipse-diameter) 
        (->
         state
         (update-in [:ellipse :x-sign] (fn [_] +))
@@ -120,8 +115,8 @@
       (set/intersection
        (set
         (range
-         (- (get-in state [:ellipse point]) ellipse-r)
-         (+ 1 (+ (get-in state [:ellipse point]) ellipse-r))))
+         (- (get-in state [:ellipse point]) ellipse-radius)
+         (+ 1 (+ (get-in state [:ellipse point]) ellipse-radius))))
        (set
         (range
          (point enemy-state)
@@ -194,8 +189,8 @@
   (q/fill 0 248 255)
   (q/ellipse (get-in state [:ellipse :x])
              (get-in state [:ellipse :y])
-             ellipse-wh
-             ellipse-wh)
+             ellipse-diameter
+             ellipse-diameter)
   (q/text-size 20)
   (q/fill 255)
   (q/text (str "Score : " (:score state)) 20 20)
