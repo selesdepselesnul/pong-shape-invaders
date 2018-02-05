@@ -50,7 +50,7 @@
                :x-speed ellipse-x-speed-init
                :x-sign +
                :y-sign -}
-     :enemies-shape-state enemies-shape-state
+     :enemies enemies-shape-state
      :score 0
      :enemies-total (count enemies-shape-state)
      :is-paused? false}))
@@ -129,7 +129,7 @@
      0))
 
 (defn update-enemies-state [state]
-  (let [enemies-shape-state (:enemies-shape-state state)
+  (let [enemies-shape-state (:enemies state)
         total-enemies (count enemies-shape-state)
         enemies-state-alive
         (->>
@@ -168,9 +168,9 @@
         new-total-enemies (count enemies-state-alive)
         delta-enemies (- total-enemies new-total-enemies)]    
     (if (= 0 delta-enemies)
-      (update state :enemies-shape-state (fn [_] enemies-state-alive))
+      (update state :enemies (fn [_] enemies-state-alive))
       (->
-       (update state :enemies-shape-state (fn [_] enemies-state-alive))
+       (update state :enemies (fn [_] enemies-state-alive))
        (update :score
                #(+ % (* (- total-enemies new-total-enemies) 10)))
        (update :enemies-total #(- % delta-enemies))))))
@@ -203,7 +203,7 @@
   (when (:is-paused? state)
     (q/text-size 60)
     (q/text "PAUSED" (/ height 2) (/ width 2)))
-  (doseq [p (:enemies-shape-state state)]
+  (doseq [p (:enemies state)]
     (q/fill (rand-int 256) 120 (rand-int 256))
     (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
 
