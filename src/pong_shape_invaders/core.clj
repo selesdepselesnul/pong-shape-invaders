@@ -41,10 +41,10 @@
 
 (def init-state
   (let [enemies-shape-state (generate-enemies-shape-state)]
-    {:rect-x rect-x-init
-     :rect-x-speed rect-x-speed-init
-     :rect-y rect-y-init
-     :rect-dir rect-dir
+    {:rect {:x rect-x-init
+            :y rect-y-init
+            :dir rect-dir
+            :x-speed rect-x-speed-init}
      :ellipse-x ellipse-x-init
      :ellipse-x-speed ellipse-x-speed-init
      :ellipse-sign-x +
@@ -60,9 +60,9 @@
   init-state)
 
 (defn is-ellipse-hit-rect? [state]
-  (< (:rect-x state)
+  (< (get-in state [:rect :x])
      (:ellipse-x state)
-     (+ (:rect-x state) rect-width)))
+     (+ (get-in state [:rect :x]) rect-width)))
 
 (defn move-ellipse-x-diagonal [state]
   (update state
@@ -80,15 +80,15 @@
        (= (:ellipse-y state) (/ ellipse-wh 2))
        (->
         state
-        (update :rect-x-speed (fn [_] ellipse-diagonal-step))
+        (update-in [:rect :x-speed] (fn [_] ellipse-diagonal-step))
         (update :ellipse-sign-y (fn [_] +)))
        (and (is-ellipse-hit-rect? state)
             (= (:ellipse-y state) (+ (- rect-y-init rect-height) ellipse-wh))) 
        (->
         state
-        (update :ellipse-x-speed (fn [_] (:rect-x-speed state)))
+        (update :ellipse-x-speed (fn [_] (get-in state [:rect :x-speed])))
         (update :ellipse-sign-y (fn [_] -))
-        (update :ellipse-sign-x (fn [y] (if (= :left (:rect-dir state)) + -))))
+        (update :ellipse-sign-x (fn [y] (if (= :left (get-in state [:rect :dir])) + -))))
        (= (:ellipse-x state) (- width ellipse-wh))
        (->
         state
@@ -105,10 +105,10 @@
 
 (defn update-rect-state [state]
   (cond
-    (>= (:rect-x state) (- width rect-width))
-    (update state :rect-x (fn [x] (- x rect-x-step)))
-    (<= (:rect-x state) 0)
-    (update state :rect-x (fn [x] (+ x rect-x-step)))
+    (>= (get-in state [:rect :x]) (- width rect-width))
+    (update-in state [:rect :x] (fn [x] (- x rect-x-step)))
+    (<= (get-in state [:rect :x]) 0)
+    (update-in state [:rect :x] (fn [x] (+ x rect-x-step)))
     :else
     state))
 
@@ -179,7 +179,10 @@
 (defn draw-state [state]
   (q/background background-color)
   (q/fill 131 131 131)
-  (q/rect (:rect-x state) (:rect-y state) rect-width rect-height)
+  (q/rect (get-in state [:rect :x])
+          (get-in state [:rect :y])
+          rect-width
+          rect-height)
   (q/fill 0 248 255)
   (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh)
   (q/text-size 20)
@@ -193,22 +196,26 @@
     (q/fill (rand-int 256) 120 (rand-int 256))
     (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
 
-(q/defsketch pong-shape-invaders
-  :title "Pong shape invaders"
-  :size [width height]
-  :setup setup
-  :update update-state
-  :draw draw-state
-  :features [:keep-on-top]
-  :middleware [m/fun-mode]
-  :key-pressed (fn [{:keys [rect-x] :as state} { :keys [key key-code] }]
-                 (->
-                  (case key
-                   (:right)
-                   (update state :rect-x (partial + rect-x-step))
-                   (:left)
-                   (update state :rect-x (fn [x] (- x rect-x-step)))
-                   (:up)
-                   (update state :is-paused? (fn [x] (not x)))
-                   state)
-                  (update :rect-dir (fn [_] key)))))
+
+(defn -main
+  [& args]
+  (q/defsketch pong-shape-invaders
+    :title "Pong shape invaders"
+    :size [width height]
+    :setup setup
+    :update update-state
+    :draw draw-state
+    :features [:keep-on-top]
+    :middleware [m/fun-mode]
+    :key-pressed (fn [{:keys [rect-x] :as state} { :keys [key key-code] }]
+                   (->
+                    (case key
+                      (:right)
+                      (update-in state [:rect :x] (partial + rect-x-step))
+                      (:left)
+                      (update-in state [:rect :x] (fn [x] (- x rect-x-step)))
+                      (:up)
+                      (update state :is-paused? (fn [x] (not x)))
+                      state)
+                    (update-in [:rect :dir] (fn [_] key))))))
+
