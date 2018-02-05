@@ -45,11 +45,11 @@
             :y rect-y-init
             :dir rect-dir
             :x-speed rect-x-speed-init}
-     :ellipse-x ellipse-x-init
-     :ellipse-x-speed ellipse-x-speed-init
-     :ellipse-sign-x +
-     :ellipse-sign-y -
-     :ellipse-y ellipse-y-init
+     :ellipse {:x ellipse-x-init
+               :y ellipse-y-init
+               :x-speed ellipse-x-speed-init
+               :x-sign +
+               :y-sign -}
      :enemies-shape-state enemies-shape-state
      :score 0
      :enemies-total (count enemies-shape-state)
@@ -61,47 +61,49 @@
 
 (defn is-ellipse-hit-rect? [state]
   (< (get-in state [:rect :x])
-     (:ellipse-x state)
+     (get-in state [:ellipse :x] state)
      (+ (get-in state [:rect :x]) rect-width)))
 
 (defn move-ellipse-x-diagonal [state]
-  (update state
-          :ellipse-x
-          (fn [x]
-            ((:ellipse-sign-x state)
-             x
-             (:ellipse-x-speed state)))))
+  (update-in state
+             [:ellipse :x] 
+             (fn [x]
+               ((get-in state [:ellipse :x-sign])
+                x
+                (get-in state [:ellipse :x-speed])))))
 
 (defn update-ellipse-state [state]
-  (if (> (:ellipse-y state) width)
+  (if (> (get-in state [:ellipse :y]) width)
     init-state 
     (->
      (cond
-       (= (:ellipse-y state) (/ ellipse-wh 2))
+       (= (get-in state [:ellipse :y]) (/ ellipse-wh 2))
        (->
         state
         (update-in [:rect :x-speed] (fn [_] ellipse-diagonal-step))
-        (update :ellipse-sign-y (fn [_] +)))
+        (update-in [:ellipse :y-sign] (fn [_] +)))
        (and (is-ellipse-hit-rect? state)
-            (= (:ellipse-y state) (+ (- rect-y-init rect-height) ellipse-wh))) 
+            (= (get-in state [:ellipse :y]) (+ (- rect-y-init rect-height) ellipse-wh))) 
        (->
         state
-        (update :ellipse-x-speed (fn [_] (get-in state [:rect :x-speed])))
-        (update :ellipse-sign-y (fn [_] -))
-        (update :ellipse-sign-x (fn [y] (if (= :left (get-in state [:rect :dir])) + -))))
+        (update-in [:ellipse :x-speed] (fn [_] (get-in state [:rect :x-speed])))
+        (update-in [:ellipse :y-sign] (fn [_] -))
+        (update-in [:ellipse :x-sign ] (fn [y] (if (= :left (get-in state [:rect :dir])) + -))))
        (= (:ellipse-x state) (- width ellipse-wh))
        (->
         state
-        (update :ellipse-sign-x (fn [_] -))
+        (update-in [:ellipse :x-sign] (fn [_] -))
         move-ellipse-x-diagonal)
-       (= (:ellipse-x state) ellipse-wh) 
+       (= (get-in state [:ellipse :x]  state) ellipse-wh) 
        (->
         state
-        (update :ellipse-sign-x (fn [_] +))
+        (update-in [:ellipse :x-sign] (fn [_] +))
         move-ellipse-x-diagonal)
        :else
        (move-ellipse-x-diagonal state))
-     (update :ellipse-y (fn [y] ((:ellipse-sign-y state) y ellipse-y-step))))))
+     (update-in [:ellipse :y]
+                (fn [y]
+                  ((get-in state [:ellipse :y-sign]) y ellipse-y-step))))))
 
 (defn update-rect-state [state]
   (cond
@@ -113,17 +115,17 @@
     state))
 
 (defn is-ellipse-and-enemy-point-collide?
-  [state enemy-state ellipse-point-keyword enemy-point-keyword]
+  [state enemy-state point]
   (> (count
       (set/intersection
        (set
         (range
-         (- (ellipse-point-keyword state) ellipse-r)
-         (+ 1 (+ (ellipse-point-keyword state) ellipse-r))))
+         (- (get-in state [:ellipse point]) ellipse-r)
+         (+ 1 (+ (get-in state [:ellipse point]) ellipse-r))))
        (set
         (range
-         (enemy-point-keyword enemy-state)
-         (+ 1 (+ (enemy-point-keyword enemy-state) enemy-diameter))))))
+         (point enemy-state)
+         (+ 1 (+ (point enemy-state) enemy-diameter))))))
      0))
 
 (defn update-enemies-state [state]
@@ -134,8 +136,14 @@
          (remove
           (fn [enemy-state]
             (and
-             (is-ellipse-and-enemy-point-collide? state enemy-state :ellipse-y :y)
-             (is-ellipse-and-enemy-point-collide? state enemy-state :ellipse-x :x)))
+             (is-ellipse-and-enemy-point-collide?
+              state
+              enemy-state
+              :y)
+             (is-ellipse-and-enemy-point-collide?
+              state
+              enemy-state
+              :x)))
           enemies-shape-state)
          (map (fn [enemy-state]
                 (let [x (:x enemy-state)
@@ -184,7 +192,10 @@
           rect-width
           rect-height)
   (q/fill 0 248 255)
-  (q/ellipse (:ellipse-x state) (:ellipse-y state) ellipse-wh ellipse-wh)
+  (q/ellipse (get-in state [:ellipse :x])
+             (get-in state [:ellipse :y])
+             ellipse-wh
+             ellipse-wh)
   (q/text-size 20)
   (q/fill 255)
   (q/text (str "Score : " (:score state)) 20 20)
