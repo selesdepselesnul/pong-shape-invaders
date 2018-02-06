@@ -24,8 +24,8 @@
 (defn generate-enemies-shape-state-in-y [y]
   (->>
    (range enemy-diameter
-          (* 26 enemy-diameter)
-          (* 2 enemy-diameter))
+          (* 24 enemy-diameter)
+          (* 4 enemy-diameter))
    (map (fn [x] {:x x :y y :dir (rand-int 2)}))))
 
 (defn generate-enemies-shape-state [level]
@@ -152,7 +152,7 @@
               :x)))
           enemies-shape-state)
          (map (fn [enemy-state]
-                (if (= (:level state) 2)
+                (if (>= (:level state) 1)
                   (let [x (:x enemy-state)
                       dir (:dir enemy-state)
                       y (:y enemy-state)
@@ -259,3 +259,4 @@
                       (update state :is-paused? (fn [x] (not x)))
                       state)
                     (update-in [:rect :dir] (fn [_] key))))))
+
