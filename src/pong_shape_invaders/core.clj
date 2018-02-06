@@ -39,7 +39,7 @@
      (generate-enemies-shape-state-in-y 120)
      (generate-enemies-shape-state-in-y 200))))
 
-(defn init-state [level life]
+(defn init-state [level life last-level-score score]
   (let [enemies-shape-state (generate-enemies-shape-state level)]
     {:rect {:x rect-x-init
             :y rect-y-init
@@ -51,7 +51,8 @@
                :x-sign +
                :y-sign -}
      :enemies enemies-shape-state
-     :score 0
+     :last-level-score last-level-score
+     :score score
      :enemies-total (count enemies-shape-state)
      :is-paused? false
      :level level
@@ -59,7 +60,7 @@
 
 (defn setup []
   (q/frame-rate fps)
-  (init-state 0 3))
+  (init-state 0 3 0 0))
 
 (defn is-ellipse-hit-rect? [state]
   (< (get-in state [:rect :x])
@@ -78,8 +79,11 @@
   (if (> (get-in state [:ellipse :y]) width)
     (let [life (:life state)]
       (if (= life 1)
-        (init-state 0 3)
-        (init-state (:level state) (dec (:life state)))))
+        (init-state 0 3 0 0)
+        (init-state (:level state)
+                    (dec (:life state))
+                    (:last-level-score state)
+                    (:last-level-score state))))
     (->
      (cond
        (<= (get-in state [:ellipse :y]) (/ ellipse-diameter 2)) 
@@ -193,7 +197,10 @@
   (if (= 0 (:enemies-total state))
     (case (:level state)
       2 (update state :level :end)
-      (init-state (inc (:level state)) (:life state)))
+      (init-state (inc (:level state))
+                  (:life state)
+                  (:score state)
+                  (:score state)))
     state))
 
 (defn update-state [state]
@@ -268,4 +275,4 @@
                           new-state)
                         (update-in [:rect :dir] (fn [_] key))))))))
 
-(-main)
+
