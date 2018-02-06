@@ -245,18 +245,22 @@
     :features [:keep-on-top]
     :middleware [m/fun-mode m/pause-on-error]
     :key-pressed (fn [{:keys [rect-x] :as state} { :keys [key key-code] }]
-                   (->
-                    (case key
-                      (:right)
-                      (update-in state
-                                 [:rect :x]
-                                 (partial + rect-x-step))
-                      (:left)
-                      (update-in state
-                                 [:rect :x]
-                                 (fn [x] (- x rect-x-step)))
-                      (:up)
-                      (update state :is-paused? (fn [x] (not x)))
-                      state)
-                    (update-in [:rect :dir] (fn [_] key))))))
+                   (let [new-state (if (= key :up)
+                                     (update state :is-paused? (fn [x] (not x)))
+                                     state)]
+                     (if (:is-paused? new-state)
+                       new-state
+                       (->
+                        (case key
+                          (:right)
+                          (update-in new-state
+                                     [:rect :x]
+                                     (partial + rect-x-step))
+                          (:left)
+                          (update-in new-state
+                                     [:rect :x]
+                                     (fn [x] (- x rect-x-step)))
+                          new-state)
+                        (update-in [:rect :dir] (fn [_] key))))))))
+
 
