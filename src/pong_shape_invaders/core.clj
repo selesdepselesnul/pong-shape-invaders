@@ -1,7 +1,9 @@
 (ns pong-shape-invaders.core
   (:require [quil.core :as q]
             [quil.middleware :as m]
-            [clojure.set :as set]))
+            [clojure.set :as set])
+  (:import (java.util Date
+                      Calendar)))
 
 (def width 800)
 (def height 600)
@@ -39,7 +41,11 @@
      (generate-enemies-shape-state-in-y 120)
      (generate-enemies-shape-state-in-y 200))))
 
-(defn init-state [level life last-level-score score]
+(defn init-state [level
+                  life
+                  last-level-score
+                  score
+                  tms]
   (let [enemies-shape-state (generate-enemies-shape-state level)]
     {:rect {:x rect-x-init
             :y rect-y-init
@@ -56,11 +62,12 @@
      :enemies-total (count enemies-shape-state)
      :is-paused? false
      :level level
-     :life life}))
+     :life life
+     :tms tms}))
 
 (defn setup []
   (q/frame-rate fps)
-  (init-state 0 3 0 0))
+  (init-state 0 3 0 0 (.get (Calendar/getInstance) Calendar/MILLISECOND)))
 
 (defn is-ellipse-hit-rect? [state]
   (< (get-in state [:rect :x])
@@ -77,13 +84,15 @@
 
 (defn update-ellipse-state [state]
   (if (> (get-in state [:ellipse :y]) width)
-    (let [life (:life state)]
+    (let [life (:life state)
+          current-tms (.get (Calendar/getInstance) Calendar/MILLISECOND)]
       (if (= life 1)
-        (init-state 0 3 0 0)
+        (init-state 0 3 0 0 current-tms)
         (init-state (:level state)
                     (dec (:life state))
                     (:last-level-score state)
-                    (:last-level-score state))))
+                    (:last-level-score state)
+                    (- current-tms (:tms state)))))
     (->
      (cond
        (<= (get-in state [:ellipse :y]) (/ ellipse-diameter 2)) 
@@ -200,7 +209,9 @@
       (init-state (inc (:level state))
                   (:life state)
                   (:score state)
-                  (:score state)))
+                  (:score state)
+                  (- (:tms state)
+                     (.get (Calendar/getInstance) Calendar/MILLISECOND))))
     state))
 
 (defn update-state [state]
@@ -220,7 +231,7 @@
   (if (= (:level state) :end)
     (do
       (q/text-size 100)
-      (q/text "THE END" (/ height 2) (/ width 2)))
+      (q/text "THE END, CONGRATULATION YOU DID IT !" (/ height 2) (/ width 2)))
     (do
       (q/fill 131 131 131)
       (q/rect (get-in state [:rect :x])
@@ -274,5 +285,6 @@
                                      (fn [x] (- x rect-x-step)))
                           new-state)
                         (update-in [:rect :dir] (fn [_] key))))))))
+
 
 
