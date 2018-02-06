@@ -39,7 +39,7 @@
      (generate-enemies-shape-state-in-y 120)
      (generate-enemies-shape-state-in-y 200))))
 
-(defn init-state [level]
+(defn init-state [level life]
   (let [enemies-shape-state (generate-enemies-shape-state level)]
     {:rect {:x rect-x-init
             :y rect-y-init
@@ -54,11 +54,12 @@
      :score 0
      :enemies-total (count enemies-shape-state)
      :is-paused? false
-     :level level}))
+     :level level
+     :life life}))
 
 (defn setup []
   (q/frame-rate fps)
-  (init-state 0))
+  (init-state 0 3))
 
 (defn is-ellipse-hit-rect? [state]
   (< (get-in state [:rect :x])
@@ -75,7 +76,10 @@
 
 (defn update-ellipse-state [state]
   (if (> (get-in state [:ellipse :y]) width)
-    (init-state (:level state)) 
+    (let [life (:life state)]
+      (if (= life 1)
+        (init-state 0 (dec (:life state)))
+        (init-state (:level state) (dec (:life state)))))
     (->
      (cond
        (<= (get-in state [:ellipse :y]) (/ ellipse-diameter 2)) 
@@ -189,7 +193,7 @@
   (if (= 0 (:enemies-total state))
     (case (:level state)
       2 (update state :level :end)
-      (init-state (inc (:level state))))
+      (init-state (inc (:level state)) (:life state)))
     state))
 
 (defn update-state [state]
@@ -224,7 +228,8 @@
       (q/text-size 20)
       (q/fill 255)
       (q/text (str "Score : " (:score state)) 20 20)
-      (q/text (str "Level : " (:level state)) (- (/ width 2) 20) 20)
+      (q/text (str "Level : " (:level state)) 180 20)
+      (q/text (str "Life : " (:life state)) 300 20)
       (q/text
        (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
       (when (:is-paused? state)
@@ -262,5 +267,3 @@
                                      (fn [x] (- x rect-x-step)))
                           new-state)
                         (update-in [:rect :dir] (fn [_] key))))))))
-
-
