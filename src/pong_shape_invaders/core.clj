@@ -28,14 +28,19 @@
           (* 2 enemy-diameter))
    (map (fn [x] {:x x :y y :dir (rand-int 2)}))))
 
-(defn generate-enemies-shape-state []
-  (concat
-   (generate-enemies-shape-state-in-y 40)
-   (generate-enemies-shape-state-in-y 120)
-   (generate-enemies-shape-state-in-y 200)))
+(defn generate-enemies-shape-state [level]
+  (case level
+    0 (generate-enemies-shape-state-in-y 40)
+    1 (concat
+       (generate-enemies-shape-state-in-y 40)
+       (generate-enemies-shape-state-in-y 120)) 
+    (concat
+     (generate-enemies-shape-state-in-y 40)
+     (generate-enemies-shape-state-in-y 120)
+     (generate-enemies-shape-state-in-y 200))))
 
-(def init-state
-  (let [enemies-shape-state (generate-enemies-shape-state)]
+(defn init-state [level]
+  (let [enemies-shape-state (generate-enemies-shape-state level)]
     {:rect {:x rect-x-init
             :y rect-y-init
             :dir :none
@@ -48,11 +53,12 @@
      :enemies enemies-shape-state
      :score 0
      :enemies-total (count enemies-shape-state)
-     :is-paused? false}))
+     :is-paused? false
+     :level level}))
 
 (defn setup []
   (q/frame-rate fps)
-  init-state)
+  (init-state 0))
 
 (defn is-ellipse-hit-rect? [state]
   (< (get-in state [:rect :x])
@@ -69,17 +75,17 @@
 
 (defn update-ellipse-state [state]
   (if (> (get-in state [:ellipse :y]) width)
-    init-state 
+    (init-state (:level state)) 
     (->
      (cond
-       (<= (get-in state [:ellipse :y]) (/ ellipse-diameter 2))
+       (<= (get-in state [:ellipse :y]) (/ ellipse-diameter 2)) 
        (->
         state
         (update-in [:rect :x-speed] (fn [_] ellipse-diagonal-step))
         (update-in [:ellipse :y-sign] (fn [_] +)))
        (and (is-ellipse-hit-rect? state)
             (= (get-in state [:ellipse :y])
-               (+ (- rect-y-init rect-height) ellipse-diameter))) 
+               (+ (- rect-y-init rect-height) ellipse-diameter)))
        (->
         state
         (update-in [:ellipse :x-speed]
@@ -146,7 +152,8 @@
               :x)))
           enemies-shape-state)
          (map (fn [enemy-state]
-                (let [x (:x enemy-state)
+                (if (= (:level state) 2)
+                  (let [x (:x enemy-state)
                       dir (:dir enemy-state)
                       y (:y enemy-state)
                       rand-step (rand-int 4)
@@ -158,15 +165,16 @@
                         {:x (+ x rand-step)
                          :y y
                          :dir 0})]
-                  (cond
-                    (>= (+ (:x new-enemy-state) enemy-diameter) width)
-                    (update new-enemy-state
-                            :x
-                            (fn [_] (- width enemy-diameter)))
-                    (<= (:x new-enemy-state) 0)
-                    (update new-enemy-state :x (fn [_] 0))
-                    :else
-                    new-enemy-state)))))
+                    (cond
+                      (>= (+ (:x new-enemy-state) enemy-diameter) width)
+                      (update new-enemy-state
+                              :x
+                              (fn [_] (- width enemy-diameter)))
+                      (<= (:x new-enemy-state) 0)
+                      (update new-enemy-state :x (fn [_] 0))
+                      :else
+                      new-enemy-state))
+                  enemy-state))))
         new-total-enemies (count enemies-state-alive)
         delta-enemies (- total-enemies new-total-enemies)]    
     (if (= 0 delta-enemies)
@@ -177,39 +185,54 @@
                #(+ % (* (- total-enemies new-total-enemies) 10)))
        (update :enemies-total #(- % delta-enemies))))))
 
+(defn update-level [state]  
+  (if (= 0 (:enemies-total state))
+    (case (:level state)
+      2 (update state :level :end)
+      (init-state (inc (:level state))))
+    state))
+
 (defn update-state [state]
-  (if (:is-paused? state)
+  (if (or (= (:level state) :end)
+          (:is-paused? state)) 
     state
     (->
      state
      update-ellipse-state
      update-rect-state
-     update-enemies-state)))
+     update-enemies-state
+     update-level)))
 
-(defn draw-state [state]
+(defn draw-state [state] 
   (q/background background-color)
-  (q/fill 131 131 131)
-  (q/rect (get-in state [:rect :x])
-          (get-in state [:rect :y])
-          rect-width
-          rect-height)
-  (q/fill 0 248 255)
-  (q/ellipse (get-in state [:ellipse :x])
-             (get-in state [:ellipse :y])
-             ellipse-diameter
-             ellipse-diameter)
-  (q/text-size 20)
-  (q/fill 255)
-  (q/text (str "Score : " (:score state)) 20 20)
-  (q/text
-   (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
-  (when (:is-paused? state)
-    (q/text-size 60)
-    (q/text "PAUSED" (/ height 2) (/ width 2)))
-  (doseq [p (:enemies state)]
-    (q/fill (rand-int 256) 120 (rand-int 256))
-    (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
 
+  (if (= (:level state) :end)
+    (do
+      (q/text-size 100)
+      (q/text "THE END" (/ height 2) (/ width 2)))
+    (do
+      (q/fill 131 131 131)
+      (q/rect (get-in state [:rect :x])
+              (get-in state [:rect :y])
+              rect-width
+              rect-height)
+      (q/fill 0 248 255)
+      (q/ellipse (get-in state [:ellipse :x])
+                 (get-in state [:ellipse :y])
+                 ellipse-diameter
+                 ellipse-diameter)
+      (q/text-size 20)
+      (q/fill 255)
+      (q/text (str "Score : " (:score state)) 20 20)
+      (q/text (str "Level : " (:level state)) (- (/ width 2) 20) 20)
+      (q/text
+       (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
+      (when (:is-paused? state)
+        (q/text-size 60)
+        (q/text "PAUSED" (/ height 2) (/ width 2)))
+      (doseq [p (:enemies state)]
+        (q/fill (rand-int 256) 120 (rand-int 256))
+        (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))))
 
 (defn -main
   [& args]
@@ -220,7 +243,7 @@
     :update update-state
     :draw draw-state
     :features [:keep-on-top]
-    :middleware [m/fun-mode]
+    :middleware [m/fun-mode m/pause-on-error]
     :key-pressed (fn [{:keys [rect-x] :as state} { :keys [key key-code] }]
                    (->
                     (case key
@@ -236,4 +259,3 @@
                       (update state :is-paused? (fn [x] (not x)))
                       state)
                     (update-in [:rect :dir] (fn [_] key))))))
-
