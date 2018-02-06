@@ -78,7 +78,7 @@
   (if (> (get-in state [:ellipse :y]) width)
     (let [life (:life state)]
       (if (= life 1)
-        (init-state 0 (dec (:life state)))
+        (init-state 0 3)
         (init-state (:level state) (dec (:life state)))))
     (->
      (cond
@@ -267,3 +267,5 @@
                                      (fn [x] (- x rect-x-step)))
                           new-state)
                         (update-in [:rect :dir] (fn [_] key))))))))
+
+(-main)
