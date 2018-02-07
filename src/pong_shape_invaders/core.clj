@@ -292,7 +292,7 @@
     :middleware [m/fun-mode m/pause-on-error]
     :key-pressed (fn [{:keys [rect-x] :as state} { :keys [key key-code] }]
                    (let [new-state (if (= key :up)
-                                     (update state :is-paused? (fn [x] (not x)))
+                                     (update state :is-paused? not)
                                      state)]
                      (if (:is-paused? new-state)
                        new-state
