@@ -311,7 +311,3 @@
                           new-state)
                         (update-in [:rect :dir] (fn [_] key))))))))
 
-
-
-
-(-main)
