@@ -1,7 +1,9 @@
 (ns pong-shape-invaders.core
   (:require [quil.core :as q]
             [quil.middleware :as m]
-            [clojure.set :as set])
+            [clojure.set :as set]
+            [clj-time.core :as t]
+            [clj-time.coerce :as c])
   (:import (java.util Date
                       Calendar)))
 
@@ -22,6 +24,9 @@
 (def ellipse-diagonal-step 2)
 
 (def enemy-diameter 30)
+
+(defn get-long-now []
+  (c/to-long (t/now)))
 
 (defn generate-enemies-shape-state-in-y [y]
   (->>
@@ -45,7 +50,8 @@
                   life
                   last-level-score
                   score
-                  tms]
+                  tms
+                  & {:keys [game-status] :or {game-status :run}}]
   (let [enemies-shape-state (generate-enemies-shape-state level)]
     {:rect {:x rect-x-init
             :y rect-y-init
@@ -62,12 +68,13 @@
      :enemies-total (count enemies-shape-state)
      :is-paused? false
      :level level
+     :game-status game-status
      :life life
      :tms tms}))
 
 (defn setup []
   (q/frame-rate fps)
-  (init-state 0 3 0 0 (.get (Calendar/getInstance) Calendar/MILLISECOND)))
+  (init-state 0 3 0 0 (get-long-now)))
 
 (defn is-ellipse-hit-rect? [state]
   (< (get-in state [:rect :x])
@@ -85,9 +92,9 @@
 (defn update-ellipse-state [state]
   (if (> (get-in state [:ellipse :y]) width)
     (let [life (:life state)
-          current-tms (.get (Calendar/getInstance) Calendar/MILLISECOND)]
+          current-tms (get-long-now)]
       (if (= life 1)
-        (init-state 0 3 0 0 current-tms)
+        (init-state 0 3 0 (:score state) (get-long-now) :game-status :game-over)
         (init-state (:level state)
                     (dec (:life state))
                     (:last-level-score state)
@@ -98,7 +105,8 @@
        (<= (get-in state [:ellipse :y]) (/ ellipse-diameter 2)) 
        (->
         state
-        (update-in [:rect :x-speed] (fn [_] ellipse-diagonal-step))
+        (update-in [:rect :x-speed]
+                   (fn [_] ellipse-diagonal-step))
         (update-in [:ellipse :y-sign] (fn [_] +)))
        (and (is-ellipse-hit-rect? state)
             (= (get-in state [:ellipse :y])
@@ -205,57 +213,74 @@
 (defn update-level [state]  
   (if (= 0 (:enemies-total state))
     (case (:level state)
-      2 (update state :level :end)
+      2 (update state :game-status :end)
       (init-state (inc (:level state))
                   (:life state)
                   (:score state)
                   (:score state)
-                  (- (:tms state)
-                     (.get (Calendar/getInstance) Calendar/MILLISECOND))))
+                  (- (get-long-now) (:tms state))))
     state))
 
+(defn update-tms [state]
+  (update state :tms #(- (get-long-now) %)))
+
 (defn update-state [state]
-  (if (or (= (:level state) :end)
-          (:is-paused? state)) 
-    state
-    (->
-     state
-     update-ellipse-state
-     update-rect-state
-     update-enemies-state
-     update-level)))
+  (let [game-status (:game-status state)]
+    (if (or (= game-status :end)
+            (= game-status :game-over)
+            (:is-paused? state)) 
+      state
+      (->
+       state
+       update-tms
+       update-ellipse-state
+       update-rect-state
+       update-enemies-state
+       update-level))))
 
 (defn draw-state [state] 
   (q/background background-color)
-
-  (if (= (:level state) :end)
-    (do
-      (q/text-size 100)
-      (q/text "THE END, CONGRATULATION YOU DID IT !" (/ height 2) (/ width 2)))
-    (do
-      (q/fill 131 131 131)
-      (q/rect (get-in state [:rect :x])
-              (get-in state [:rect :y])
-              rect-width
-              rect-height)
-      (q/fill 0 248 255)
-      (q/ellipse (get-in state [:ellipse :x])
-                 (get-in state [:ellipse :y])
-                 ellipse-diameter
-                 ellipse-diameter)
-      (q/text-size 20)
-      (q/fill 255)
-      (q/text (str "Score : " (:score state)) 20 20)
-      (q/text (str "Level : " (:level state)) 180 20)
-      (q/text (str "Life : " (:life state)) 300 20)
-      (q/text
-       (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
-      (when (:is-paused? state)
-        (q/text-size 60)
-        (q/text "PAUSED" (/ height 2) (/ width 2)))
-      (doseq [p (:enemies state)]
-        (q/fill (rand-int 256) 120 (rand-int 256))
-        (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))))
+  (let [game-status (:game-status state)]
+    (cond 
+      (= game-status :game-over) 
+      (do
+        (q/fill 255)
+        (q/text-size 40)
+        (q/text "GAME OVER" 100 100)
+        (q/text (str "TOTAL SCORE : " (:score state)) 100 300)
+        (q/text (str "TIME : " (:tms state)) 100 500))
+      (= game-status :end) 
+      (do
+        (q/text-size 100)
+        (q/text "THE END, CONGRATULATION YOU DID IT !"
+                (/ width 2)
+                (/ height 2)))
+      :else
+      (do
+        (q/fill 131 131 131)
+        (q/rect (get-in state [:rect :x])
+                (get-in state [:rect :y])
+                rect-width
+                rect-height)
+        (q/fill 0 248 255)
+        (q/ellipse (get-in state [:ellipse :x])
+                   (get-in state [:ellipse :y])
+                   ellipse-diameter
+                   ellipse-diameter)
+        (q/text-size 20)
+        (q/fill 255)
+        (q/text (str "Score : " (:score state)) 20 20)
+        (q/text (str "Level : " (:level state)) 180 20)
+        (q/text (str "Life : " (:life state)) 300 20)
+        
+        (q/text
+         (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
+        (when (:is-paused? state)
+          (q/text-size 60)
+          (q/text "PAUSED" (/ height 2) (/ width 2)))
+        (doseq [p (:enemies state)]
+          (q/fill (rand-int 256) 120 (rand-int 256))
+          (q/rect (:x p) (:y p) enemy-diameter enemy-diameter))))))
 
 (defn -main
   [& args]
@@ -288,3 +313,5 @@
 
 
 
+
+(-main)
