@@ -3,9 +3,7 @@
             [quil.middleware :as m]
             [clojure.set :as set]
             [clj-time.core :as t]
-            [clj-time.coerce :as c])
-  (:import (java.util Date
-                      Calendar)))
+            [clj-time.coerce :as c]))
 
 (def width 800)
 (def height 600)
@@ -310,4 +308,5 @@
                                      (fn [x] (- x rect-x-step)))
                           new-state)
                         (update-in [:rect :dir] (fn [_] key))))))))
+
 
