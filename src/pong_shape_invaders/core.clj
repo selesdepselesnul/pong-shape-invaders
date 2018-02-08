@@ -121,14 +121,16 @@
        (and (is-ellipse-hit-rect? state)
             (= (get-in state [:ellipse :y])
                (+ (- rect-y-init rect-height) ellipse-diameter)))
-       (->
-        state
-        (update-in [:ellipse :x-speed]
-                   (fn [_] (get-in state [:rect :x-speed])))
-        (update-in [:ellipse :y-sign] (fn [_] -))
-        (update-in
-         [:ellipse :x-sign]
-         (fn [y] (if (= :left (get-in state [:rect :dir])) + -))))
+       (do
+         (play-sound "ellipse_hit_rectangle.mp3")
+         (->
+          state
+          (update-in [:ellipse :x-speed]
+                     (fn [_] (get-in state [:rect :x-speed])))
+          (update-in [:ellipse :y-sign] (fn [_] -))
+          (update-in
+           [:ellipse :x-sign]
+           (fn [y] (if (= :left (get-in state [:rect :dir])) + -)))))       
        (>= (get-in state [:ellipse :x]) (- width ellipse-diameter))
        (->
         state
