@@ -133,15 +133,19 @@
            [:ellipse :x-sign]
            (fn [y] (if (= :left (get-in state [:rect :dir])) + -)))))       
        (>= (get-in state [:ellipse :x]) (- width ellipse-diameter))
-       (->
-        state
-        (update-in [:ellipse :x-sign] (fn [_] -))
-        move-ellipse-x-diagonal)
+       (do
+         (play-sound "ellipse_hit_boundary.mp3")
+         (->
+          state
+          (update-in [:ellipse :x-sign] (fn [_] -))
+          move-ellipse-x-diagonal))
        (= (get-in state [:ellipse :x] state) ellipse-diameter) 
-       (->
-        state
-        (update-in [:ellipse :x-sign] (fn [_] +))
-        move-ellipse-x-diagonal)
+       (do
+         (play-sound "ellipse_hit_boundary.mp3")
+         (->
+          state
+          (update-in [:ellipse :x-sign] (fn [_] +))
+          move-ellipse-x-diagonal))      
        :else
        (move-ellipse-x-diagonal state))
      (update-in
