@@ -187,7 +187,7 @@
                                enemy-state
                                :x))]
               (when is-collide
-                (play-sound "hit_enemy.mp3"))
+                (play-sound "ellipse_hit_enemy.mp3"))
               is-collide))
           enemies-shape-state)
          (map (fn [enemy-state]
