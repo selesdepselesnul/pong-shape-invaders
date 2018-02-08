@@ -103,6 +103,7 @@
   (if (> (get-in state [:ellipse :y]) width)
     (let [life (:life state)
           current-tms (get-long-now)]
+      (play-sound "ellipse_dead.mp3")
       (if (= life 1)
         (init-state 0 3 0 (:score state) (get-long-now) :game-status :game-over)
         (init-state (:level state)
