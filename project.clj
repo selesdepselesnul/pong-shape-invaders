@@ -6,4 +6,5 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [quil "2.6.0"]
                  [clj-time "0.14.2"]]
-  :main pong-shape-invaders.core)
+  :main pong-shape-invaders.core
+  :resource-paths ["src/resources"])

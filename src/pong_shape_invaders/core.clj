@@ -3,7 +3,19 @@
             [quil.middleware :as m]
             [clojure.set :as set]
             [clj-time.core :as t]
-            [clj-time.coerce :as c]))
+            [clj-time.coerce :as c]
+            [clojure.java.io :as io])
+  (:import (javafx.scene.media Media
+                               MediaPlayer)
+           (javafx.embed.swing JFXPanel)))
+
+
+(defn play-sound [sound]
+  (let [_ (JFXPanel.)
+        data-file (io/resource sound)
+        media (Media. (.toString data-file))
+        media-player (MediaPlayer. media)]
+    (.play media-player)))
 
 (def width 800)
 (def height 600)
@@ -163,16 +175,20 @@
         enemies-state-alive
         (->>
          (remove
+          
           (fn [enemy-state]
-            (and
-             (is-ellipse-and-enemy-point-collide?
-              state
-              enemy-state
-              :y)
-             (is-ellipse-and-enemy-point-collide?
-              state
-              enemy-state
-              :x)))
+            (let [is-collide (and
+                              (is-ellipse-and-enemy-point-collide?
+                               state
+                               enemy-state
+                               :y)
+                              (is-ellipse-and-enemy-point-collide?
+                               state
+                               enemy-state
+                               :x))]
+              (when is-collide
+                (play-sound "hit_enemy.mp3"))
+              is-collide))
           enemies-shape-state)
          (map (fn [enemy-state]
                 (if (>= (:level state) 1)
