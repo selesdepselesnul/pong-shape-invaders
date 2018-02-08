@@ -211,7 +211,7 @@
 (defn update-level [state]  
   (if (= 0 (:enemies-total state))
     (case (:level state)
-      2 (update state :game-status :end)
+      2 (update state :game-status (fn [_] :end))
       (init-state (inc (:level state))
                   (:life state)
                   (:score state)
@@ -236,49 +236,55 @@
        update-enemies-state
        update-level))))
 
+(defn when-game-run [state]
+  (q/fill 131 131 131)
+  (q/rect (get-in state [:rect :x])
+          (get-in state [:rect :y])
+          rect-width
+          rect-height)
+  (q/fill 0 248 255)
+  (q/ellipse (get-in state [:ellipse :x])
+             (get-in state [:ellipse :y])
+             ellipse-diameter
+             ellipse-diameter)
+  (q/text-size 20)
+  (q/fill 255)
+  (q/text (str "Score : " (:score state)) 20 20)
+  (q/text (str "Level : " (:level state)) 180 20)
+  (q/text (str "Life : " (:life state)) 300 20)
+  (q/text
+   (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
+  (when (:is-paused? state)
+    (q/text-size 60)
+    (q/text "PAUSED" (/ height 2) (/ width 2)))
+  (doseq [p (:enemies state)]
+    (q/fill (rand-int 256) 120 (rand-int 256))
+    (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
+
+(defn when-game-over [state]
+  (q/fill 255)
+        (q/text-size 40)
+        (q/text "GAME OVER" 100 100)
+        (q/text (str "TOTAL SCORE : " (:score state)) 100 300)
+  (q/text (str "TIME : " (:tms state)) 100 500))
+
+(defn when-game-end [state]
+  (q/fill 255)
+  (q/text-size 40)
+  (q/text "THE END, CONGRATULATION !" 100 100)
+  (q/text (str "TOTAL SCORE : " (:score state)) 100 300)
+  (q/text (str "TIME : " (:tms state)) 100 500))
+
 (defn draw-state [state] 
   (q/background background-color)
   (let [game-status (:game-status state)]
     (cond 
       (= game-status :game-over) 
-      (do
-        (q/fill 255)
-        (q/text-size 40)
-        (q/text "GAME OVER" 100 100)
-        (q/text (str "TOTAL SCORE : " (:score state)) 100 300)
-        (q/text (str "TIME : " (:tms state)) 100 500))
+      (when-game-over state)
       (= game-status :end) 
-      (do
-        (q/text-size 100)
-        (q/text "THE END, CONGRATULATION YOU DID IT !"
-                (/ width 2)
-                (/ height 2)))
+      (when-game-end state)
       :else
-      (do
-        (q/fill 131 131 131)
-        (q/rect (get-in state [:rect :x])
-                (get-in state [:rect :y])
-                rect-width
-                rect-height)
-        (q/fill 0 248 255)
-        (q/ellipse (get-in state [:ellipse :x])
-                   (get-in state [:ellipse :y])
-                   ellipse-diameter
-                   ellipse-diameter)
-        (q/text-size 20)
-        (q/fill 255)
-        (q/text (str "Score : " (:score state)) 20 20)
-        (q/text (str "Level : " (:level state)) 180 20)
-        (q/text (str "Life : " (:life state)) 300 20)
-        
-        (q/text
-         (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
-        (when (:is-paused? state)
-          (q/text-size 60)
-          (q/text "PAUSED" (/ height 2) (/ width 2)))
-        (doseq [p (:enemies state)]
-          (q/fill (rand-int 256) 120 (rand-int 256))
-          (q/rect (:x p) (:y p) enemy-diameter enemy-diameter))))))
+      (when-game-run state))))
 
 (defn -main
   [& args]
