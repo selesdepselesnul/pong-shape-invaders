@@ -286,9 +286,9 @@
 
 (defn when-game-over [state]
   (q/fill 255)
-        (q/text-size 40)
-        (q/text "GAME OVER" 100 100)
-        (q/text (str "TOTAL SCORE : " (:score state)) 100 300)
+  (q/text-size 40)
+  (q/text "GAME OVER" 100 100)
+  (q/text (str "TOTAL SCORE : " (:score state)) 100 300)
   (q/text (str "TIME : " (:tms state)) 100 500))
 
 (defn when-game-end [state]
