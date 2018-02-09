@@ -2,20 +2,11 @@
   (:require [quil.core :as q]
             [quil.middleware :as m]
             [clojure.set :as set]
-            [clj-time.core :as t]
-            [clj-time.coerce :as c]
             [clojure.java.io :as io])
   (:import (javafx.scene.media Media
                                MediaPlayer)
-           (javafx.embed.swing JFXPanel)))
-
-
-(defn play-sound [sound]
-  (let [_ (JFXPanel.)
-        data-file (io/resource sound)
-        media (Media. (.toString data-file))
-        media-player (MediaPlayer. media)]
-    (.play media-player)))
+           (javafx.embed.swing JFXPanel)
+           (java.util Calendar)))
 
 (def width 800)
 (def height 600)
@@ -35,8 +26,15 @@
 
 (def enemy-diameter 30)
 
+(defn play-sound [sound]
+  (let [_ (JFXPanel.)
+        data-file (io/resource sound)
+        media (Media. (.toString data-file))
+        media-player (MediaPlayer. media)]
+    (.play media-player)))
+
 (defn get-long-now []
-  (c/to-long (t/now)))
+  (.get (Calendar/getInstance) Calendar/MILLISECOND))
 
 (defn generate-enemies-shape-state-in-y [y]
   (->>
