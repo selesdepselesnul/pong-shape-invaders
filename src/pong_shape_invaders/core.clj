@@ -320,22 +320,24 @@
     :features [:keep-on-top]
     :middleware [m/fun-mode m/pause-on-error]
     :key-pressed (fn [{:keys [rect-x] :as state} { :keys [key key-code] }]
-                   (let [new-state (if (= key :up)
+                   (if (and (= key :up) (= :game-over (:game-status state)))
+                     (init-state 0 3 0 0 (get-long-now))
+                     (let [new-state (if (= key :up)
                                      (update state :is-paused? not)
                                      state)]
-                     (if (:is-paused? new-state)
-                       new-state
-                       (->
-                        (case key
-                          (:right)
-                          (update-in new-state
-                                     [:rect :x]
-                                     (partial + rect-x-step))
-                          (:left)
-                          (update-in new-state
-                                     [:rect :x]
-                                     (fn [x] (- x rect-x-step)))
-                          new-state)
-                        (update-in [:rect :dir] (fn [_] key))))))))
+                       (if (:is-paused? new-state)
+                         new-state
+                         (->
+                          (case key
+                            (:right)
+                            (update-in new-state
+                                       [:rect :x]
+                                       (partial + rect-x-step))
+                            (:left)
+                            (update-in new-state
+                                       [:rect :x]
+                                       (fn [x] (- x rect-x-step)))
+                            new-state)
+                          (update-in [:rect :dir] (fn [_] key)))))))))
 
 
