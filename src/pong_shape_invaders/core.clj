@@ -284,11 +284,11 @@
 
 (defn when-game-over [state]
   (q/fill 255)
-  (q/text-size 40)
+  (q/text-size 34)
   (q/text "GAME OVER" 100 100)
   (q/text (str "TOTAL SCORE : " (:score state)) 100 150)
   (q/text (str "TIME : " (:tms state) " ms") 100 200)
-  (q/text "PRESS UPARROW KEY FOR RESTART" 100 300))
+  (q/text "PRESS ↑ (UPARROW) BUTTON TO RESTART" 40 300))
 
 (defn when-game-end [state]
   (q/fill 255)
