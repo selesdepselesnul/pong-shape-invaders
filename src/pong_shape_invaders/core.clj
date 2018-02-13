@@ -74,7 +74,6 @@
      :last-level-score last-level-score
      :score score
      :enemies-total (count enemies-shape-state)
-     :is-paused? false
      :level level
      :game-status game-status
      :life life
@@ -245,17 +244,15 @@
 
 (defn update-state [state]
   (let [game-status (:game-status state)]
-    (if (or (= game-status :end)
-            (= game-status :game-over)
-            (:is-paused? state)) 
-      state
+    (if (= game-status :run)
       (->
        state
        update-tms
        update-ellipse-state
        update-rect-state
        update-enemies-state
-       update-level))))
+       update-level)
+      state)))
 
 (defn when-game-run [state]
   (q/fill 131 131 131)
@@ -275,7 +272,7 @@
   (q/text (str "Life : " (:life state)) 300 20)
   (q/text
    (str "Enemies Total : " (:enemies-total state)) (- width 200) 20)
-  (when (:is-paused? state)
+  (when (= (:game-status state) :pause)
     (q/text-size 60)
     (q/text "PAUSED" (/ height 2) (/ width 2)))
   (doseq [p (:enemies state)]
@@ -318,25 +315,34 @@
     :draw draw-state
     :features [:keep-on-top]
     :middleware [m/fun-mode m/pause-on-error]
-    :key-pressed (fn [{:keys [rect-x] :as state} { :keys [key key-code] }]
-                   (if (and (= key :up) (= :game-over (:game-status state)))
-                     (init-state 0 3 0 0 (get-long-now))
-                     (let [new-state (if (= key :up)
-                                     (update state :is-paused? not)
-                                     state)]
-                       (if (:is-paused? new-state)
-                         new-state
-                         (->
-                          (case key
-                            (:right)
-                            (update-in new-state
-                                       [:rect :x]
-                                       (partial + rect-x-step))
-                            (:left)
-                            (update-in new-state
-                                       [:rect :x]
-                                       (fn [x] (- x rect-x-step)))
-                            new-state)
-                          (update-in [:rect :dir] (fn [_] key)))))))))
+    :key-pressed (fn [{:keys [rect-x game-status] :as state} { :keys [key key-code] }]
+                   (case game-status
+                     :game-over
+                     (if (= key :up)
+                       (init-state 0 3 0 0 (get-long-now))
+                       state)
+                     :pause
+                     (if (= key :up)
+                       (update state
+                             :game-status
+                             (fn [_] :run))
+                       state)
+                     :run
+                     (->
+                      (case key
+                       (:right)
+                       (update-in state
+                                  [:rect :x]
+                                  (partial + rect-x-step))
+                       (:left)
+                       (update-in state
+                                  [:rect :x]
+                                  (fn [x] (- x rect-x-step)))
+                       (:up)
+                       (update state
+                               :game-status
+                               (fn [_] :pause))
+                       state)
+                      (update-in [:rect :dir] (fn [_] key)))))))
 
 
