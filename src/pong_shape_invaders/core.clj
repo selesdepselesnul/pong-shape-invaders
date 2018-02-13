@@ -315,7 +315,7 @@
     :draw draw-state
     :features [:keep-on-top]
     :middleware [m/fun-mode m/pause-on-error]
-    :key-pressed (fn [{:keys [rect-x game-status] :as state} { :keys [key key-code] }]
+    :key-pressed (fn [{:keys [rect-x game-status] :as state} {:keys [key key-code]}]
                    (case game-status
                      :game-over
                      (if (= key :up)
@@ -343,6 +343,7 @@
                                :game-status
                                (fn [_] :pause))
                        state)
-                      (update-in [:rect :dir] (fn [_] key)))))))
+                      (update-in [:rect :dir] (fn [_] key)))
+                     state))))
 
 
