@@ -31,7 +31,8 @@
         data-file (io/resource sound)
         media (Media. (.toString data-file))
         media-player (MediaPlayer. media)]
-    (.play media-player)))
+    (.play media-player)
+    media-player))
 
 (defn get-long-now []
   (.get (Calendar/getInstance) Calendar/MILLISECOND))
@@ -59,7 +60,7 @@
                   last-level-score
                   score
                   tms
-                  & {:keys [game-status] :or {game-status :run}}]
+                  & {:keys [game-status sound] :or {game-status :run}}]
   (let [enemies-shape-state (generate-enemies-shape-state level)]
     {:rect {:x rect-x-init
             :y rect-y-init
@@ -77,7 +78,8 @@
      :level level
      :game-status game-status
      :life life
-     :tms tms}))
+     :tms tms
+     :sound sound}))
 
 (defn setup []
   (q/frame-rate fps)
@@ -99,15 +101,23 @@
 (defn update-ellipse-state [state]
   (if (> (get-in state [:ellipse :y]) width)
     (let [life (:life state)
-          current-tms (get-long-now)]
-      (play-sound "ellipse_dead.mp3")
+          current-tms (get-long-now)
+          sound "ellipse_dead"]
+      ;; (play-sound "ellipse_dead.mp3")
       (if (= life 1)
-        (init-state 0 3 0 (:score state) (get-long-now) :game-status :game-over)
+        (init-state 0
+                    3
+                    0
+                    (:score state)
+                    (get-long-now)
+                    :game-status :game-over
+                    :sound sound)
         (init-state (:level state)
                     (dec (:life state))
                     (:last-level-score state)
                     (:last-level-score state)
-                    (- current-tms (:tms state)))))
+                    (- current-tms (:tms state))
+                    :sound sound)))
     (->
      (cond
        (<= (get-in state [:ellipse :y]) (/ ellipse-diameter 2)) 
@@ -115,36 +125,39 @@
         state
         (update-in [:rect :x-speed]
                    (fn [_] ellipse-diagonal-step))
-        (update-in [:ellipse :y-sign] (fn [_] +)))
+        (update-in [:ellipse :y-sign] (fn [_] +))
+        (update :sound (fn [_] nil)))
        (and (is-ellipse-hit-rect? state)
             (= (get-in state [:ellipse :y])
                (+ (- rect-y-init rect-height) ellipse-diameter)))
-       (do
-         (play-sound "ellipse_hit_rectangle.mp3")
-         (->
-          state
-          (update-in [:ellipse :x-speed]
-                     (fn [_] (get-in state [:rect :x-speed])))
-          (update-in [:ellipse :y-sign] (fn [_] -))
-          (update-in
-           [:ellipse :x-sign]
-           (fn [y] (if (= :left (get-in state [:rect :dir])) + -)))))       
+       ;; (play-sound "ellipse_hit_rectangle.mp3")
+       (->
+        state
+        (update-in [:ellipse :x-speed]
+                   (fn [_] (get-in state [:rect :x-speed])))
+        (update-in [:ellipse :y-sign] (fn [_] -))
+        (update-in
+         [:ellipse :x-sign]
+         (fn [y] (if (= :left (get-in state [:rect :dir])) + -)))
+        (update :sound (fn [_] "ellipse_hit_rectangle")))       
        (>= (get-in state [:ellipse :x]) (- width ellipse-diameter))
-       (do
-         (play-sound "ellipse_hit_boundary.mp3")
-         (->
-          state
-          (update-in [:ellipse :x-sign] (fn [_] -))
-          move-ellipse-x-diagonal))
+       ;; (play-sound "ellipse_hit_boundary.mp3")
+       (->
+        state
+        (update-in [:ellipse :x-sign] (fn [_] -))
+        move-ellipse-x-diagonal
+        (update :sound (fn [_] "ellipse_hit_boundary")))
        (= (get-in state [:ellipse :x] state) ellipse-diameter) 
-       (do
-         (play-sound "ellipse_hit_boundary.mp3")
-         (->
-          state
-          (update-in [:ellipse :x-sign] (fn [_] +))
-          move-ellipse-x-diagonal))      
+       ;; (play-sound "ellipse_hit_boundary.mp3")
+       (->
+        state
+        (update-in [:ellipse :x-sign] (fn [_] +))
+        move-ellipse-x-diagonal
+        (update :sound (fn [_] "ellipse_hit_boundary")))      
        :else
-       (move-ellipse-x-diagonal state))
+       (->
+        (move-ellipse-x-diagonal state)
+        (update :sound (fn [_] nil))))
      (update-in
       [:ellipse :y]
       (fn [y]
@@ -277,7 +290,9 @@
     (q/text "PAUSED" (/ height 2) (/ width 2)))
   (doseq [p (:enemies state)]
     (q/fill (rand-int 256) 120 (rand-int 256))
-    (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
+    (q/rect (:x p) (:y p) enemy-diameter enemy-diameter))
+  (when-let [sound (:sound state)]
+    (play-sound (str sound ".mp3"))))
 
 (defn when-game-over [state]
   (q/fill 255)
