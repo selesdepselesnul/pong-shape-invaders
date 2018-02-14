@@ -260,7 +260,7 @@
        update-level)
       state)))
 
-(defn when-game-run [state]
+(defn draw-when-game-run! [state]
   (q/fill 131 131 131)
   (q/rect (get-in state [:rect :x])
           (get-in state [:rect :y])
@@ -289,7 +289,7 @@
   (when-let [sound (:sound state)]
     (play-sound (str sound ".mp3"))))
 
-(defn when-game-over [state]
+(defn draw-when-game-over! [state]
   (q/fill 255)
   (q/text-size 34)
   (q/text "GAME OVER" 100 100)
@@ -297,23 +297,23 @@
   (q/text (str "TIME : " (:tms state) " ms") 100 200)
   (q/text "PRESS ↑ (UPARROW) BUTTON TO RESTART" 40 300))
 
-(defn when-game-end [state]
+(defn draw-when-game-end! [state]
   (q/fill 255)
   (q/text-size 40)
   (q/text "THE END, CONGRATULATION !" 100 100)
   (q/text (str "TOTAL SCORE : " (:score state)) 100 300)
   (q/text (str "TIME : " (:tms state) " ms") 100 500))
 
-(defn draw-state [state] 
+(defn draw-state! [state] 
   (q/background background-color)
   (let [game-status (:game-status state)]
     (cond 
       (= game-status :game-over) 
-      (when-game-over state)
+      (draw-when-game-over! state)
       (= game-status :end) 
-      (when-game-end state)
+      (draw-when-game-end! state)
       :else
-      (when-game-run state))))
+      (draw-when-game-run! state))))
 
 (defn -main
   [& args]
@@ -322,7 +322,7 @@
     :size [width height]
     :setup setup
     :update update-state
-    :draw draw-state
+    :draw draw-state!
     :features [:keep-on-top]
     :middleware [m/fun-mode m/pause-on-error]
     :key-pressed (fn [{:keys [rect-x game-status] :as state} {:keys [key key-code]}]
