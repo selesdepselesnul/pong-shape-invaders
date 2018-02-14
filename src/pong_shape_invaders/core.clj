@@ -26,7 +26,7 @@
 
 (def enemy-diameter 30)
 
-(defn play-sound [sound]
+(defn play-sound! [sound]
   (let [_ (JFXPanel.)
         data-file (io/resource sound)
         media (Media. (.toString data-file))
@@ -82,7 +82,7 @@
      :sound sound
      :total-enemies-hitted 0}))
 
-(defn setup []
+(defn setup! []
   (q/frame-rate fps)
   (init-state 0 3 0 0 (get-long-now)))
 
@@ -104,7 +104,6 @@
     (let [life (:life state)
           current-tms (get-long-now)
           sound "ellipse_dead"]
-      ;; (play-sound "ellipse_dead.mp3")
       (if (= life 1)
         (init-state 0
                     3
@@ -131,7 +130,6 @@
        (and (is-ellipse-hit-rect? state)
             (= (get-in state [:ellipse :y])
                (+ (- rect-y-init rect-height) ellipse-diameter)))
-       ;; (play-sound "ellipse_hit_rectangle.mp3")
        (->
         state
         (update-in [:ellipse :x-speed]
@@ -142,14 +140,12 @@
          (fn [y] (if (= :left (get-in state [:rect :dir])) + -)))
         (update :sound (fn [_] "ellipse_hit_rectangle")))       
        (>= (get-in state [:ellipse :x]) (- width ellipse-diameter))
-       ;; (play-sound "ellipse_hit_boundary.mp3")
        (->
         state
         (update-in [:ellipse :x-sign] (fn [_] -))
         move-ellipse-x-diagonal
         (update :sound (fn [_] "ellipse_hit_boundary")))
        (= (get-in state [:ellipse :x] state) ellipse-diameter) 
-       ;; (play-sound "ellipse_hit_boundary.mp3")
        (->
         state
         (update-in [:ellipse :x-sign] (fn [_] +))
@@ -260,6 +256,12 @@
        update-level)
       state)))
 
+(defn play-sound-fx! [state]
+  (dotimes [_ (:total-enemies-hitted state)]
+    (play-sound! "ellipse_hit_enemy.mp3"))
+  (when-let [sound (:sound state)]
+    (play-sound! (str sound ".mp3"))))
+
 (defn draw-when-game-run! [state]
   (q/fill 131 131 131)
   (q/rect (get-in state [:rect :x])
@@ -283,11 +285,7 @@
     (q/text "PAUSED" (/ height 2) (/ width 2)))
   (doseq [p (:enemies state)]
     (q/fill (rand-int 256) 120 (rand-int 256))
-    (q/rect (:x p) (:y p) enemy-diameter enemy-diameter))
-  (dotimes [_ (:total-enemies-hitted state)]
-    (play-sound "ellipse_hit_enemy.mp3"))
-  (when-let [sound (:sound state)]
-    (play-sound (str sound ".mp3"))))
+    (q/rect (:x p) (:y p) enemy-diameter enemy-diameter)))
 
 (defn draw-when-game-over! [state]
   (q/fill 255)
@@ -313,14 +311,16 @@
       (= game-status :end) 
       (draw-when-game-end! state)
       :else
-      (draw-when-game-run! state))))
+      (do
+        (draw-when-game-run! state)
+        (play-sound!-fx! state)))))
 
 (defn -main
   [& args]
   (q/defsketch pong-shape-invaders
     :title "Pong shape invaders"
     :size [width height]
-    :setup setup
+    :setup setup!
     :update update-state
     :draw draw-state!
     :features [:keep-on-top]
