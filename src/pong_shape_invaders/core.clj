@@ -66,7 +66,8 @@
      :life life
      :tms tms
      :sound sound
-     :total-enemies-hitted 0}))
+     :total-enemies-hitted 0
+     :media-players []}))
 
 (defn setup! []
   (q/frame-rate fps)
@@ -243,10 +244,25 @@
       state)))
 
 (defn play-sound-fx! [state]
-  (dotimes [_ (:total-enemies-hitted state)]
-    (util/play-sound! "ellipse_hit_enemy.mp3"))
-  (when-let [sound (:sound state)]
-    (util/play-sound! (str sound ".mp3"))))
+  (let [newstate
+        (when-let [sound (:sound state)]
+          (util/play-sound! (str sound ".mp3")))
+        play-sound-and-map!
+        (fn [x]
+          (update
+            x
+            :media-players
+            (fn [_]
+              (if (= 0 (:total-enemies-hitted state))
+                []
+                (doall
+                 (map
+                  (fn [_]
+                    (util/play-sound! "ellipse_hit_enemy.mp3"))
+                  (range 0 (:total-enemies-hitted state))))))))]
+    (if newstate
+      (play-sound-and-map! (update state :media-players (fn [xs] (conj xs newstate))))
+      (play-sound-and-map! state))))
 
 (defn draw-when-game-run! [state]
   (q/fill 131 131 131)
@@ -288,9 +304,14 @@
   (q/text (str "TOTAL SCORE : " (:score state)) 100 300)
   (q/text (str "TIME : " (:tms state) " ms") 100 500))
 
+(defn stop-media-player! [state]
+  (doseq [x (:media-players state)]
+      (.stop x)))
+
 (defn draw-state! [state] 
   (q/background background-color)
   (let [game-status (:game-status state)]
+    (stop-media-player! state)
     (cond 
       (= game-status :game-over) 
       (draw-when-game-over! state)
