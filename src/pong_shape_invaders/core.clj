@@ -2,11 +2,8 @@
   (:require [quil.core :as q]
             [quil.middleware :as m]
             [clojure.set :as set]
-            [clojure.java.io :as io])
-  (:import (javafx.scene.media Media
-                               MediaPlayer)
-           (javafx.embed.swing JFXPanel)
-           (java.util Calendar)))
+            [clojure.java.io :as io]
+            [pong-shape-invaders.util :as util]))
 
 (def width 800)
 (def height 600)
@@ -25,17 +22,6 @@
 (def ellipse-diagonal-step 2)
 
 (def enemy-diameter 30)
-
-(defn play-sound! [sound]
-  (let [_ (JFXPanel.)
-        data-file (io/resource sound)
-        media (Media. (.toString data-file))
-        media-player (MediaPlayer. media)]
-    (.play media-player)
-    media-player))
-
-(defn get-long-now []
-  (.get (Calendar/getInstance) Calendar/MILLISECOND))
 
 (defn generate-enemies-shape-state-in-y [y]
   (->>
@@ -84,7 +70,7 @@
 
 (defn setup! []
   (q/frame-rate fps)
-  (init-state 0 3 0 0 (get-long-now)))
+  (init-state 0 3 0 0 (util/get-long-now)))
 
 (defn is-ellipse-hit-rect? [state]
   (< (get-in state [:rect :x])
@@ -102,14 +88,14 @@
 (defn update-ellipse-state [state]
   (if (> (get-in state [:ellipse :y]) width)
     (let [life (:life state)
-          current-tms (get-long-now)
+          current-tms (util/get-long-now)
           sound "ellipse_dead"]
       (if (= life 1)
         (init-state 0
                     3
                     0
                     (:score state)
-                    (get-long-now)
+                    (util/get-long-now)
                     :game-status :game-over
                     :sound sound)
         (init-state (:level state)
@@ -238,11 +224,11 @@
                   (:life state)
                   (:score state)
                   (:score state)
-                  (- (get-long-now) (:tms state))))
+                  (- (util/get-long-now) (:tms state))))
     state))
 
 (defn update-tms [state]
-  (update state :tms #(- (get-long-now) %)))
+  (update state :tms #(- (util/get-long-now) %)))
 
 (defn update-state [state]
   (let [game-status (:game-status state)]
@@ -258,9 +244,9 @@
 
 (defn play-sound-fx! [state]
   (dotimes [_ (:total-enemies-hitted state)]
-    (play-sound! "ellipse_hit_enemy.mp3"))
+    (util/play-sound! "ellipse_hit_enemy.mp3"))
   (when-let [sound (:sound state)]
-    (play-sound! (str sound ".mp3"))))
+    (util/play-sound! (str sound ".mp3"))))
 
 (defn draw-when-game-run! [state]
   (q/fill 131 131 131)
@@ -329,7 +315,7 @@
                    (case game-status
                      :game-over
                      (if (= key :up)
-                       (init-state 0 3 0 0 (get-long-now))
+                       (init-state 0 3 0 0 (util/get-long-now))
                        state)
                      :pause
                      (if (= key :up)
