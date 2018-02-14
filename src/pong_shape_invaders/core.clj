@@ -313,7 +313,7 @@
       :else
       (do
         (draw-when-game-run! state)
-        (play-sound!-fx! state)))))
+        (play-sound-fx! state)))))
 
 (defn -main
   [& args]
