@@ -79,7 +79,8 @@
      :game-status game-status
      :life life
      :tms tms
-     :sound sound}))
+     :sound sound
+     :total-enemies-hitted 0}))
 
 (defn setup []
   (q/frame-rate fps)
@@ -192,20 +193,10 @@
         enemies-state-alive
         (->>
          (remove
-          
           (fn [enemy-state]
-            (let [is-collide (and
-                              (is-ellipse-and-enemy-point-collide?
-                               state
-                               enemy-state
-                               :y)
-                              (is-ellipse-and-enemy-point-collide?
-                               state
-                               enemy-state
-                               :x))]
-              (when is-collide
-                (play-sound "ellipse_hit_enemy.mp3"))
-              is-collide))
+            (and
+             (is-ellipse-and-enemy-point-collide? state enemy-state :y)
+             (is-ellipse-and-enemy-point-collide? state enemy-state :x)))
           enemies-shape-state)
          (map (fn [enemy-state]
                 (if (>= (:level state) 1)
@@ -232,14 +223,16 @@
                       new-enemy-state))
                   enemy-state))))
         new-total-enemies (count enemies-state-alive)
-        delta-enemies (- total-enemies new-total-enemies)]    
-    (if (= 0 delta-enemies)
-      (update state :enemies (fn [_] enemies-state-alive))
-      (->
-       (update state :enemies (fn [_] enemies-state-alive))
-       (update :score
-               #(+ % (* (- total-enemies new-total-enemies) 10)))
-       (update :enemies-total #(- % delta-enemies))))))
+        delta-enemies (- total-enemies new-total-enemies)
+        new-state (if (= 0 delta-enemies)
+                    (update state :enemies (fn [_] enemies-state-alive))
+                    (->
+                     (update state :enemies (fn [_] enemies-state-alive))
+                     (update :score
+                             #(+ % (* (- total-enemies new-total-enemies) 10)))
+                     (update :enemies-total #(- % delta-enemies))))]
+    (-> new-state
+        (update :total-enemies-hitted (fn [_] delta-enemies)))))
 
 (defn update-level [state]  
   (if (= 0 (:enemies-total state))
@@ -291,6 +284,8 @@
   (doseq [p (:enemies state)]
     (q/fill (rand-int 256) 120 (rand-int 256))
     (q/rect (:x p) (:y p) enemy-diameter enemy-diameter))
+  (dotimes [_ (:total-enemies-hitted state)]
+    (play-sound "ellipse_hit_enemy.mp3"))
   (when-let [sound (:sound state)]
     (play-sound (str sound ".mp3"))))
 
