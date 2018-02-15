@@ -15,3 +15,9 @@
 
 (defn get-long-now []
   (.get (Calendar/getInstance) Calendar/MILLISECOND))
+
+(defn stop-media-player! [media-players]
+  (doseq [x media-players]
+    (.stop x)))
+
+

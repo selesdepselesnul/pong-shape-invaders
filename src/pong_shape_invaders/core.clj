@@ -304,14 +304,11 @@
   (q/text (str "TOTAL SCORE : " (:score state)) 100 300)
   (q/text (str "TIME : " (:tms state) " ms") 100 500))
 
-(defn stop-media-player! [state]
-  (doseq [x (:media-players state)]
-      (.stop x)))
 
 (defn draw-state! [state] 
   (q/background background-color)
   (let [game-status (:game-status state)]
-    (stop-media-player! state)
+    (stop-media-player! (:media-players state))
     (cond 
       (= game-status :game-over) 
       (draw-when-game-over! state)
